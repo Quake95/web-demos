@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Generator — Tradie Demo Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow: #F5C500;
+      --navy: #0F1B2D;
+      --navy-mid: #1A2E48;
+      --white: #FFFFFF;
+      --offwhite: #F8F9FA;
+      --grey: #6B7280;
+      --grey-light: #E5E7EB;
+      --green: #16a34a;
+      --text: #111827;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--offwhite);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--navy);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--yellow);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text { color: white; font-weight: 700; font-size: 16px; }
+    .logo-text span { color: var(--yellow); }
+
+    .main {
+      max-width: 640px;
+      margin: 48px auto;
+      padding: 0 24px 80px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .page-sub {
+      color: var(--grey);
+      font-size: 15px;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid var(--grey-light);
+      padding: 32px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--grey);
+      margin-bottom: 20px;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    label .optional {
+      color: var(--grey);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--grey-light);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #F5C500;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 500px) { .services-grid { grid-template-columns: 1fr; } }
+
+    .service-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--grey-light);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 14px;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .service-toggle input[type="checkbox"] {
+      width: 16px; height: 16px;
+      margin: 0;
+      accent-color: var(--navy);
+      flex-shrink: 0;
+    }
+
+    .service-toggle:has(input:checked) {
+      border-color: var(--navy);
+      background: #f0f4f8;
+    }
+
+    .generate-btn {
+      width: 100%;
+      background: var(--navy);
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+
+    .generate-btn:hover { background: var(--navy-mid); }
+
+    .result-card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 2px solid var(--green);
+      padding: 28px;
+      display: none;
+    }
+
+    .result-card.visible { display: block; }
+
+    .result-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+
+    .result-sub {
+      font-size: 14px;
+      color: var(--grey);
+      margin-bottom: 20px;
+    }
+
+    .link-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .link-input {
+      flex: 1;
+      background: var(--offwhite);
+      border: 1.5px solid var(--grey-light);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--grey);
+      font-family: monospace;
+    }
+
+    .copy-btn {
+      background: var(--navy);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: var(--navy-mid); }
+    .copy-btn.copied { background: var(--green); }
+
+    .preview-btn {
+      display: block;
+      width: 100%;
+      background: var(--yellow);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin-top: 12px;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .preview-btn:hover { background: #D9AE00; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--grey);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Tradie <span>Web</span> · Demo Generator</div>
+  </header>
+
+  <div class="main">
+    <h1 class="page-title">Build a Demo Website</h1>
+    <p class="page-sub">Fill in the tradie's details and get a personalised demo link you can send them in seconds.</p>
+
+    <!-- BUSINESS DETAILS -->
+    <div class="card">
+      <div class="card-title">Business Details</div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>First Name</label>
+          <input type="text" id="firstName" placeholder="e.g. Dave" />
+        </div>
+        <div class="field">
+          <label>Last Name <span class="optional">(optional)</span></label>
+          <input type="text" id="lastName" placeholder="e.g. Mitchell" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Business Name <span class="optional">(leave blank to auto-generate)</span></label>
+        <input type="text" id="businessName" placeholder="e.g. Mitchell Electrical" />
+      </div>
+
+      <div class="field">
+        <label>Trade</label>
+        <select id="trade">
+          <option value="Electrician">Electrician</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Painter">Painter</option>
+          <option value="Builder">Builder</option>
+          <option value="Concreter">Concreter</option>
+          <option value="Carpenter">Carpenter</option>
+          <option value="Tiler">Tiler</option>
+          <option value="Plasterer">Plasterer</option>
+          <option value="Roofer">Roofer</option>
+          <option value="Landscaper">Landscaper</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Suburb</label>
+          <input type="text" id="suburb" placeholder="e.g. Brunswick" />
+        </div>
+        <div class="field">
+          <label>Years Experience <span class="optional">(optional)</span></label>
+          <input type="number" id="years" placeholder="e.g. 12" min="1" max="50" />
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="card">
+      <div class="card-title">Contact Info</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="phone" placeholder="e.g. 0412 345 678" />
+        </div>
+        <div class="field">
+          <label>Email <span class="optional">(optional)</span></label>
+          <input type="email" id="email" placeholder="e.g. dave@gmail.com" />
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="card">
+      <div class="card-title">Services Offered</div>
+      <div class="services-grid" id="servicesGrid">
+        <!-- populated by JS based on trade -->
+      </div>
+    </div>
+
+    <button class="generate-btn" onclick="generate()">⚡ Generate Demo Website</button>
+
+    <!-- RESULT -->
+    <div class="result-card" id="resultCard" style="margin-top:20px;">
+      <div class="result-title">✅ Demo site ready!</div>
+      <div class="result-sub">Copy the link below and send it to the prospect.</div>
+      <div class="link-box">
+        <input class="link-input" id="generatedLink" readonly />
+        <button class="copy-btn" id="copyBtn" onclick="copyLink()">Copy</button>
+      </div>
+      <a class="preview-btn" id="previewBtn" target="_blank">Open Preview →</a>
+      <p class="hint">💡 The link contains all their details — no database or account needed.</p>
+    </div>
+  </div>
+
+  <script>
+    const servicesByTrade = {
+      Electrician: [
+        { id: 'residential', label: '🏠 Residential', default: true },
+        { id: 'commercial', label: '🏢 Commercial', default: true },
+        { id: 'solar', label: '☀️ Solar & Battery', default: true },
+        { id: 'switchboard', label: '🔧 Switchboard Upgrades', default: true },
+        { id: 'lighting', label: '💡 LED Lighting', default: true },
+        { id: 'fault', label: '🚨 Fault Finding', default: true },
+      ],
+      Plumber: [
+        { id: 'leaks', label: '💧 Leak Repairs', default: true },
+        { id: 'hotwater', label: '🚿 Hot Water Systems', default: true },
+        { id: 'blocked', label: '🪠 Blocked Drains', default: true },
+        { id: 'bathroom', label: '🛁 Bathroom Fit-Outs', default: true },
+        { id: 'gas', label: '🔥 Gas Fitting', default: true },
+        { id: 'emergency', label: '🚨 Emergency Plumbing', default: true },
+      ],
+      Painter: [
+        { id: 'interior', label: '🏠 Interior Painting', default: true },
+        { id: 'exterior', label: '🏡 Exterior Painting', default: true },
+        { id: 'commercial', label: '🏢 Commercial', default: true },
+        { id: 'prep', label: '🔧 Surface Prep', default: true },
+        { id: 'feature', label: '✨ Feature Walls', default: true },
+        { id: 'render', label: '🧱 Render & Texture', default: true },
+      ],
+      Builder: [
+        { id: 'reno', label: '🏠 Renovations', default: true },
+        { id: 'extension', label: '📐 Extensions', default: true },
+        { id: 'decks', label: '🪵 Decks & Pergolas', default: true },
+        { id: 'commercial', label: '🏢 Commercial Fit-Outs', default: true },
+        { id: 'knockdown', label: '🏗️ Knockdown Rebuild', default: true },
+        { id: 'project', label: '📋 Project Management', default: true },
+      ],
+      Concreter: [
+        { id: 'driveways', label: '🚗 Driveways', default: true },
+        { id: 'paths', label: '🚶 Paths & Patios', default: true },
+        { id: 'slabs', label: '📐 Slabs & Footings', default: true },
+        { id: 'exposed', label: '✨ Exposed Aggregate', default: true },
+        { id: 'retaining', label: '🧱 Retaining Walls', default: true },
+        { id: 'cutting', label: '🔧 Concrete Cutting', default: true },
+      ],
+      Carpenter: [
+        { id: 'framing', label: '🏗️ Framing', default: true },
+        { id: 'decks', label: '🪵 Decks & Pergolas', default: true },
+        { id: 'joinery', label: '🚪 Doors & Windows', default: true },
+        { id: 'fitout', label: '🏠 Interior Fit-Outs', default: true },
+        { id: 'stairs', label: '🪜 Stairs & Balustrades', default: true },
+        { id: 'reno', label: '🔧 Renovations', default: true },
+      ],
+      Tiler: [
+        { id: 'bathroom', label: '🚿 Bathrooms', default: true },
+        { id: 'kitchen', label: '🍳 Kitchens', default: true },
+        { id: 'floor', label: '🏠 Floor Tiling', default: true },
+        { id: 'outdoor', label: '🌿 Outdoor Areas', default: true },
+        { id: 'waterproof', label: '💧 Waterproofing', default: true },
+        { id: 'large', label: '⬜ Large Format Tiles', default: true },
+      ],
+      Plasterer: [
+        { id: 'plasterboard', label: '🏠 Plasterboard', default: true },
+        { id: 'cornice', label: '✨ Cornice & Repairs', default: true },
+        { id: 'render', label: '🧱 Render', default: true },
+        { id: 'ornamental', label: '🎨 Ornamental', default: true },
+        { id: 'commercial', label: '🏢 Commercial', default: true },
+        { id: 'reno', label: '🔧 Renovations', default: true },
+      ],
+      Roofer: [
+        { id: 'repairs', label: '🔧 Roof Repairs', default: true },
+        { id: 'replacement', label: '🏠 Full Replacement', default: true },
+        { id: 'gutters', label: '🌧️ Gutters & Downpipes', default: true },
+        { id: 'leaks', label: '💧 Leak Detection', default: true },
+        { id: 'colorbond', label: '🏗️ Colorbond', default: true },
+        { id: 'solar', label: '☀️ Solar Roof Mounts', default: true },
+      ],
+      Landscaper: [
+        { id: 'design', label: '🌿 Landscape Design', default: true },
+        { id: 'lawns', label: '🌱 Lawn & Turf', default: true },
+        { id: 'retaining', label: '🧱 Retaining Walls', default: true },
+        { id: 'irrigation', label: '💧 Irrigation', default: true },
+        { id: 'paving', label: '🪨 Paving', default: true },
+        { id: 'maintenance', label: '✂️ Maintenance', default: true },
+      ],
+    };
+
+    function renderServices(trade) {
+      const grid = document.getElementById('servicesGrid');
+      const services = servicesByTrade[trade] || servicesByTrade['Electrician'];
+      grid.innerHTML = services.map(s => `
+        <label class="service-toggle">
+          <input type="checkbox" name="service" value="${s.id}" ${s.default ? 'checked' : ''} />
+          ${s.label}
+        </label>
+      `).join('');
+    }
+
+    document.getElementById('trade').addEventListener('change', function() {
+      renderServices(this.value);
+    });
+
+    renderServices('Electrician');
+
+    function getSelectedServices() {
+      return Array.from(document.querySelectorAll('input[name="service"]:checked'))
+        .map(el => el.value)
+        .join(',');
+    }
+
+    function generate() {
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const trade = document.getElementById('trade').value;
+      const suburb = document.getElementById('suburb').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const years = document.getElementById('years').value.trim();
+      let businessName = document.getElementById('businessName').value.trim();
+
+      if (!firstName || !suburb || !phone) {
+        alert('Please fill in First Name, Suburb, and Phone Number at minimum.');
+        return;
+      }
+
+      if (!businessName) {
+        businessName = lastName
+          ? `${firstName} ${lastName} ${trade}`
+          : `${firstName}'s ${trade}`;
+      }
+
+      const services = getSelectedServices();
+
+      const params = new URLSearchParams({
+        name: businessName,
+        first: firstName,
+        trade,
+        suburb,
+        phone,
+        ...(email && { email }),
+        ...(years && { years }),
+        ...(services && { services }),
+      });
+
+      const url = `preview.html?${params.toString()}`;
+
+      document.getElementById('generatedLink').value = window.location.origin + window.location.pathname.replace('generator.html', '') + url;
+      document.getElementById('previewBtn').href = url;
+      document.getElementById('resultCard').classList.add('visible');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copyLink() {
+      const input = document.getElementById('generatedLink');
+      navigator.clipboard.writeText(input.value).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✅ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
