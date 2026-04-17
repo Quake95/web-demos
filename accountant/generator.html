@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accountant Demo Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --teal: #0D6E6E; --teal-dark: #095858; --teal-light: #E6F4F4;
+      --navy: #0F1B2D; --white: #FFFFFF; --offwhite: #F8F9FA;
+      --grey: #6B7280; --grey-light: #E5E7EB; --green: #16a34a; --text: #111827;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--offwhite); color: var(--text); min-height: 100vh; }
+    header { background: var(--navy); padding: 20px 32px; display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 36px; height: 36px; background: var(--teal); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { color: white; font-weight: 700; font-size: 16px; }
+    .logo-text span { color: #5BC8C8; }
+    .main { max-width: 640px; margin: 48px auto; padding: 0 24px 80px; }
+    .page-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .page-sub { color: var(--grey); font-size: 15px; margin-bottom: 36px; }
+    .card { background: var(--white); border-radius: 16px; border: 1px solid var(--grey-light); padding: 28px; margin-bottom: 16px; }
+    .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--grey); margin-bottom: 18px; }
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+    label .opt { color: var(--grey); font-weight: 400; font-size: 12px; margin-left: 4px; }
+    input, select { width: 100%; padding: 10px 13px; border: 1.5px solid var(--grey-light); border-radius: 8px; font-family: inherit; font-size: 14px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+    input:focus, select:focus { border-color: var(--teal); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+    .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .check-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px solid var(--grey-light); border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; user-select: none; }
+    .check-item input { width: 15px; height: 15px; margin: 0; flex-shrink: 0; accent-color: var(--teal); }
+    .check-item:has(input:checked) { border-color: var(--teal); background: var(--teal-light); }
+    .generate-btn { width: 100%; background: var(--teal); color: white; font-weight: 700; font-size: 16px; padding: 16px; border-radius: 10px; border: none; cursor: pointer; margin-top: 8px; transition: background 0.15s; }
+    .generate-btn:hover { background: var(--teal-dark); }
+    .result-card { background: var(--white); border-radius: 16px; border: 2px solid var(--green); padding: 24px; display: none; margin-top: 20px; }
+    .result-card.visible { display: block; }
+    .result-title { font-size: 16px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+    .result-sub { font-size: 14px; color: var(--grey); margin-bottom: 16px; }
+    .link-box { display: flex; gap: 10px; }
+    .link-input { flex: 1; background: var(--offwhite); border: 1.5px solid var(--grey-light); border-radius: 8px; padding: 10px 13px; font-size: 12px; color: var(--grey); font-family: monospace; }
+    .copy-btn { background: var(--navy); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .copy-btn.copied { background: var(--green); }
+    .preview-btn { display: block; width: 100%; background: var(--teal); color: white; font-weight: 700; font-size: 15px; padding: 13px; border-radius: 10px; border: none; cursor: pointer; margin-top: 10px; text-align: center; text-decoration: none; }
+    .hint { font-size: 12px; color: var(--grey); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Accountant <span>Web</span> · Demo Generator</div>
+  </header>
+  <div class="main">
+    <h1 class="page-title">Build an Accountant Demo</h1>
+    <p class="page-sub">Fill in the practice details and get a personalised demo link to send the prospect in seconds.</p>
+
+    <div class="card">
+      <div class="card-title">Practice Details</div>
+      <div class="field-row">
+        <div class="field"><label>First Name</label><input type="text" id="firstName" placeholder="e.g. Sarah" /></div>
+        <div class="field"><label>Last Name <span class="opt">(optional)</span></label><input type="text" id="lastName" placeholder="e.g. Chen" /></div>
+      </div>
+      <div class="field"><label>Practice Name <span class="opt">(leave blank to auto-generate)</span></label><input type="text" id="practiceName" placeholder="e.g. Chen Accounting" /></div>
+      <div class="field">
+        <label>Practice Type</label>
+        <select id="practiceType">
+          <option value="Accountant">Accountant</option>
+          <option value="Bookkeeper">Bookkeeper</option>
+          <option value="Accounting & Bookkeeping">Accounting & Bookkeeping</option>
+          <option value="Tax Agent">Tax Agent</option>
+          <option value="Business Advisor">Business Advisor</option>
+          <option value="SMSF Specialist">SMSF Specialist</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Suburb</label><input type="text" id="suburb" placeholder="e.g. Richmond" /></div>
+        <div class="field"><label>Years in Practice <span class="opt">(optional)</span></label><input type="number" id="years" placeholder="e.g. 14" min="1" max="50" /></div>
+      </div>
+      <div class="field"><label>Niche / Specialty <span class="opt">(optional)</span></label><input type="text" id="niche" placeholder="e.g. small business, tradies, medical practices" /></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contact Info</div>
+      <div class="field-row">
+        <div class="field"><label>Phone Number</label><input type="tel" id="phone" placeholder="e.g. 03 9123 4567" /></div>
+        <div class="field"><label>Email <span class="opt">(optional)</span></label><input type="email" id="email" placeholder="e.g. sarah@chenaccounting.com.au" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Credentials</div>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" name="cred" value="CPA" checked /> CPA Australia</label>
+        <label class="check-item"><input type="checkbox" name="cred" value="CA" /> Chartered Accountant</label>
+        <label class="check-item"><input type="checkbox" name="cred" value="IPA" /> IPA Member</label>
+        <label class="check-item"><input type="checkbox" name="cred" value="BAS Agent" checked /> Registered BAS Agent</label>
+        <label class="check-item"><input type="checkbox" name="cred" value="Tax Agent" checked /> Registered Tax Agent</label>
+        <label class="check-item"><input type="checkbox" name="cred" value="SMSF Auditor" /> SMSF Auditor</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Software & Partnerships</div>
+      <div class="check-grid">
+        <label class="check-item"><input type="checkbox" name="software" value="Xero" checked /> Xero Partner</label>
+        <label class="check-item"><input type="checkbox" name="software" value="MYOB" /> MYOB Partner</label>
+        <label class="check-item"><input type="checkbox" name="software" value="QuickBooks" /> QuickBooks ProAdvisor</label>
+        <label class="check-item"><input type="checkbox" name="software" value="Reckon" /> Reckon Partner</label>
+        <label class="check-item"><input type="checkbox" name="software" value="Hubdoc" /> Hubdoc</label>
+        <label class="check-item"><input type="checkbox" name="software" value="Dext" /> Dext / Receipt Bank</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Services Offered</div>
+      <div class="check-grid" id="servicesGrid">
+        <label class="check-item"><input type="checkbox" name="svc" value="tax" checked /> Tax Returns</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="bas" checked /> BAS Lodgement</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="bookkeeping" checked /> Bookkeeping</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="payroll" checked /> Payroll</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="xero-setup" checked /> Xero Setup & Training</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="advisory" /> Business Advisory</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="cashflow" /> Cashflow Planning</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="smsf" /> SMSF</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="company" /> Company Setup</label>
+        <label class="check-item"><input type="checkbox" name="svc" value="audit" /> Audit & Assurance</label>
+      </div>
+    </div>
+
+    <button class="generate-btn" onclick="generate()">📊 Generate Demo Website</button>
+
+    <div class="result-card" id="resultCard">
+      <div class="result-title">✅ Demo site ready!</div>
+      <div class="result-sub">Copy the link and send it to the prospect.</div>
+      <div class="link-box">
+        <input class="link-input" id="generatedLink" readonly />
+        <button class="copy-btn" id="copyBtn" onclick="copyLink()">Copy</button>
+      </div>
+      <a class="preview-btn" id="previewBtn" target="_blank">Open Preview →</a>
+      <p class="hint">💡 All details are encoded in the URL — no database needed.</p>
+    </div>
+  </div>
+
+  <script>
+    function getChecked(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value).join(',');
+    }
+    function generate() {
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const suburb    = document.getElementById('suburb').value.trim();
+      const phone     = document.getElementById('phone').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const years     = document.getElementById('years').value.trim();
+      const niche     = document.getElementById('niche').value.trim();
+      const type      = document.getElementById('practiceType').value;
+      let   name      = document.getElementById('practiceName').value.trim();
+
+      if (!firstName || !suburb || !phone) {
+        alert('Please fill in First Name, Suburb, and Phone at minimum.');
+        return;
+      }
+      if (!name) name = lastName ? `${firstName} ${lastName} ${type === 'Bookkeeper' ? 'Bookkeeping' : 'Accounting'}` : `${firstName}'s ${type === 'Bookkeeper' ? 'Bookkeeping' : 'Accounting'}`;
+
+      const params = new URLSearchParams({
+        name, first: firstName, type, suburb, phone,
+        ...(email  && { email }),
+        ...(years  && { years }),
+        ...(niche  && { niche }),
+        creds: getChecked('cred'),
+        software: getChecked('software'),
+        services: getChecked('svc'),
+      });
+
+      const url = `preview.html?${params.toString()}`;
+      document.getElementById('generatedLink').value = window.location.origin + window.location.pathname.replace('generator.html','') + url;
+      document.getElementById('previewBtn').href = url;
+      document.getElementById('resultCard').classList.add('visible');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function copyLink() {
+      navigator.clipboard.writeText(document.getElementById('generatedLink').value).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✅ Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
