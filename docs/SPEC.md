@@ -256,3 +256,25 @@ Static files served from root as-is; `/api/*` from functions. Set `engines.node`
 
 No accounts, no database, no price history, no barcode-scanner library (Claude reads barcodes from the photo
 when visible), no push notifications.
+
+## My list (front-end)
+
+A saved shopping list of deals for a multi-item Chemist Warehouse visit. Client-side only; no API changes.
+
+Storage: `localStorage` key `pm_list`, array of `{ id, name, size, product, result, saved_at, done }`.
+`product` is the compare request product, `result` the full `/api/compare` response at save time.
+Items are identified by `product.name` + `size` (case-insensitive). Max 30 items. Writes are wrapped in
+try/catch; on quota failure `result.stores` is dropped from all but the newest item and the write retried once.
+Age text uses `result.searched_at` (falling back to `saved_at`); amber when older than 24 h.
+
+Screens and controls:
+- Results: "Add to my list" button (reads "On my list" when present; tapping then updates the stored result).
+- Header: list icon button with count badge (hidden when empty), on every screen except the PIN gate. Home also
+  shows a "My list (N)" button under recent lookups.
+- `data-screen="list"`: totals bar (not-done items: sum of `you_pay` for matches plus `cw_price` for
+  already-cheapest; saving is `cw_price - you_pay` over matches; hidden when nothing summable), "Refresh all"
+  (confirm(), sequential, "Refreshing 2 of 5…"), cards with "Got it" (moves to a Done group), "Show" (opens the
+  counter sheet; hidden without `best_matchable`), "Refresh" (single `/api/compare`, updates in place, errors
+  shown inline on the card, 401 returns to the PIN gate) and "Remove"; "Clear done items" at the bottom.
+- "Show whole list at the counter": full-screen sheet of every not-done matched item (competitor, price, link),
+  with the Chemist Warehouse policy bullets once at the bottom. Close button and Escape close it.

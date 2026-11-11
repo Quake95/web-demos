@@ -221,6 +221,38 @@
     .sheet ul { padding-left: 24px; display: grid; gap: 10px; font-size: 18px; }
     .sheet .ask { font-size: 20px; font-weight: 700; }
 
+    /* my list */
+    .icon-btn { position: relative; }
+    .count-badge { position: absolute; top: 4px; right: 2px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-size: 12px; font-weight: 800; line-height: 20px; text-align: center; }
+    .btn-outline { background: var(--surface); color: var(--primary-ink); border-color: var(--primary); }
+    .btn-outline:hover { background: var(--primary-soft); }
+    .btn-sm { min-height: 48px; padding: 8px 14px; font-size: 16px; border-radius: 12px; }
+    .totals { background: var(--primary-soft); color: var(--primary-ink); border: 2px solid var(--primary); border-radius: var(--radius); padding: 14px 16px; font-weight: 700; font-size: 18px; }
+    .totals .t-pay { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+    ul.list-items { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .list-card { display: grid; gap: 8px; }
+    .list-card .l-name { font-size: 19px; font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
+    .list-card .l-size { color: var(--muted); font-weight: 500; }
+    .list-card .l-deal { font-weight: 600; overflow-wrap: anywhere; }
+    .list-card .l-age { font-size: 14px; color: var(--muted); font-weight: 500; }
+    .list-card .l-age.old { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); border-radius: 8px; padding: 2px 8px; font-weight: 700; justify-self: start; }
+    .list-card.done .l-name, .list-card.done .l-deal { text-decoration: line-through; color: var(--muted); }
+    .list-card.done { background: var(--surface-2); box-shadow: none; }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .card-actions .btn { flex: 1 1 auto; }
+    .gotit .box { width: 22px; height: 22px; border: 2px solid currentColor; border-radius: 6px; display: grid; place-items: center; flex: none; }
+    .gotit[aria-checked="true"] { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
+    .gotit[aria-checked="true"] .box { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+    .gotit .box svg { width: 16px; height: 16px; opacity: 0; }
+    .gotit[aria-checked="true"] .box svg { opacity: 1; }
+    .spinner-sm { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--primary); animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    .l-busy { font-weight: 600; color: var(--muted); }
+    .lsheet-item { border: 2px solid var(--primary); border-radius: 18px; padding: 16px; background: var(--primary-soft); color: var(--primary-ink); display: grid; gap: 4px; }
+    .lsheet-item .li-name { font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+    .lsheet-item .li-comp { font-size: 24px; font-weight: 800; }
+    .lsheet-item .li-price { font-size: 48px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+    .lsheet-item a { font-size: 17px; font-weight: 700; word-break: break-all; color: var(--focus); min-height: 44px; display: block; padding: 8px 0; }
+
     @media (min-width: 700px) {
       .app { padding-top: 12px; }
       .verdict-actions { flex-direction: row; }
@@ -235,6 +267,10 @@
     <div class="top-actions">
       <button class="icon-btn" id="btn-theme" type="button" aria-label="Switch light or dark theme">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-list" type="button" aria-label="My list">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        <span class="count-badge" id="list-badge" aria-hidden="true" hidden>0</span>
       </button>
       <button class="icon-btn" id="btn-lock" type="button" aria-label="Forget PIN on this device" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
@@ -281,6 +317,9 @@
         <h2 class="section-title" id="recent-h" style="margin-bottom:10px">Recent lookups</h2>
         <ul class="recent" id="recent-list" aria-labelledby="recent-h"></ul>
         <button class="btn btn-ghost" id="btn-clear-recent" type="button" style="margin-top:6px">Clear recent</button>
+      </div>
+      <div id="list-link-wrap" hidden>
+        <button class="btn btn-secondary btn-block" id="btn-open-list" type="button">My list (0)</button>
       </div>
     </section>
 
@@ -346,10 +385,31 @@
       </details>
       <p class="disclaimer" id="results-disclaimer"></p>
       <div class="row">
+        <button class="btn btn-outline" id="btn-add-list" type="button">Add to my list</button>
         <button class="btn btn-secondary" id="btn-copy" type="button">Copy summary</button>
-        <button class="btn btn-secondary" id="btn-new" type="button">New search</button>
       </div>
+      <p class="status" id="list-status" role="status" aria-live="polite"></p>
+      <button class="btn btn-secondary btn-block" id="btn-new" type="button">New search</button>
       <p class="status" id="copy-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- My list -->
+    <section class="screen" id="screen-list" data-screen="list" hidden>
+      <h2 tabindex="-1" id="list-h">My list</h2>
+      <div class="totals" id="list-totals" hidden></div>
+      <div id="list-tools" class="row" style="flex-wrap:wrap">
+        <button class="btn btn-secondary" id="btn-counter-list" type="button">Show whole list at the counter</button>
+        <button class="btn btn-secondary" id="btn-refresh-all" type="button">Refresh all</button>
+      </div>
+      <p class="status" id="list-progress" role="status" aria-live="polite"></p>
+      <p class="card" id="list-empty" hidden>Your list is empty. Check a product, then tap "Add to my list".</p>
+      <ul class="list-items" id="list-open" aria-label="To buy"></ul>
+      <div id="list-done-wrap" hidden>
+        <h3 class="section-title" id="list-done-h" style="margin-bottom:10px">Done</h3>
+        <ul class="list-items" id="list-done" aria-labelledby="list-done-h"></ul>
+        <button class="btn btn-secondary btn-block" id="btn-clear-done" type="button" style="margin-top:12px">Clear done items</button>
+      </div>
+      <button class="btn btn-secondary btn-block" id="btn-list-home" type="button">New search</button>
     </section>
 
     <!-- Error -->
@@ -387,6 +447,20 @@
       <p class="ask">Please check the page above and match this price.</p>
     </div>
     <ul id="sheet-policy"></ul>
+  </div>
+</div>
+
+<!-- Whole-list counter sheet -->
+<div class="sheet" id="lsheet" role="dialog" aria-modal="true" aria-labelledby="lsheet-title" hidden>
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <span class="sheet-kicker">Price match requests</span>
+      <button class="btn btn-secondary" id="lsheet-close" type="button" style="min-height:48px">Close</button>
+    </div>
+    <h2 class="sheet-product" id="lsheet-title" tabindex="-1">My list at the counter</h2>
+    <p class="ask" style="font-size:20px;font-weight:700">Please check each page below and match the price.</p>
+    <div id="lsheet-items" style="display:grid;gap:16px"></div>
+    <ul id="lsheet-policy"></ul>
   </div>
 </div>
 
@@ -441,6 +515,7 @@
   function show(name, focusSel) {
     document.querySelectorAll("[data-screen]").forEach(function (s) { s.hidden = s.dataset.screen !== name; });
     $("btn-lock").hidden = name === "pin" || !lsGet(PIN_KEY);
+    $("btn-list").hidden = name === "pin";
     window.scrollTo(0, 0);
     var target = document.querySelector('[data-screen="' + name + '"]');
     var f = target && (focusSel ? target.querySelector(focusSel) : target.querySelector("h1, h2"));
@@ -478,6 +553,14 @@
       showPin("That PIN was not accepted. Please enter it again.");
       return;
     }
+    var info = errInfo(err);
+    state.retry = retryFn;
+    $("error-title").textContent = info.title;
+    $("error-text").textContent = info.text;
+    $("btn-retry").hidden = !retryFn;
+    show("error");
+  }
+  function errInfo(err) {
     var title = "Something went wrong", text;
     switch (true) {
       case err.code === "network": title = "No connection"; text = "Couldn't reach the server. Check your signal or Wi-Fi and try again."; break;
@@ -488,11 +571,7 @@
       case err.status === 400: title = "That didn't work"; text = err.message || "The request was rejected. Check the product details and try again."; break;
       default: text = err.message || "Unexpected error (" + (err.status || err.code) + "). Try again.";
     }
-    state.retry = retryFn;
-    $("error-title").textContent = title;
-    $("error-text").textContent = text;
-    $("btn-retry").hidden = !retryFn;
-    show("error");
+    return { title: title, text: text };
   }
 
   /* ---------- PIN ---------- */
@@ -519,6 +598,7 @@
     if (!lsGet(PIN_KEY)) { showPin(); return; }
     $("home-error").hidden = true;
     renderRecent();
+    updateListUi();
     show("home");
   }
 
@@ -803,6 +883,8 @@
     pb.appendChild(el("p", { text: (r.policy && r.policy.amcal) || AMCAL_POLICY }));
     $("policy").open = false;
     $("copy-status").textContent = "";
+    $("list-status").textContent = "";
+    setListBtn();
     show("results", "#results-h");
     $("results-h").focus();
   }
@@ -849,12 +931,13 @@
   }
   $("sheet-close").addEventListener("click", closeSheet);
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !$("sheet").hidden) closeSheet();
-    if (e.key === "Tab" && !$("sheet").hidden) {
-      var f = Array.prototype.slice.call($("sheet").querySelectorAll("a[href], button"));
+    var sh = !$("lsheet").hidden ? $("lsheet") : !$("sheet").hidden ? $("sheet") : null;
+    if (e.key === "Escape" && sh) { if (sh === $("lsheet")) closeListSheet(); else closeSheet(); }
+    if (e.key === "Tab" && sh) {
+      var f = Array.prototype.slice.call(sh.querySelectorAll("a[href], button"));
       if (!f.length) return;
       var first = f[0], last = f[f.length - 1];
-      if (!$("sheet").contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      if (!sh.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
       else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
@@ -892,6 +975,231 @@
   $("btn-new").addEventListener("click", function () { state.imageUrl = null; goHome(); $("text-input").value = ""; });
   $("btn-retry").addEventListener("click", function () { if (state.retry) state.retry(); });
   $("btn-error-home").addEventListener("click", goHome);
+
+  /* ---------- My list ---------- */
+  var LIST_KEY = "pm_list", LIST_MAX = 30;
+  var listItems = loadList();
+  var listBusy = null;          // id being refreshed right now
+  var listErrors = {};          // id -> inline message
+  var listCounterOpener = null;
+
+  function loadList() {
+    try {
+      var a = JSON.parse(lsGet(LIST_KEY) || "[]");
+      return Array.isArray(a) ? a.filter(function (x) { return x && x.id && x.result && typeof x.result === "object" && x.product; }) : [];
+    } catch (e) { return []; }
+  }
+  function writeList() { try { localStorage.setItem(LIST_KEY, JSON.stringify(listItems)); return true; } catch (e) { return false; } }
+  function saveList() {
+    if (writeList()) return true;
+    // quota: drop the store rows from the oldest items (keep the newest intact), retry once
+    listItems.forEach(function (x, i) { if (i < listItems.length - 1 && x.result) delete x.result.stores; });
+    return writeList();
+  }
+  function listKey(p) { return String((p && p.name) || "").trim().toLowerCase() + "|" + String((p && p.size) || "").trim().toLowerCase(); }
+  function findListItem(p) { var k = listKey(p); for (var i = 0; i < listItems.length; i++) if (listKey(listItems[i]) === k) return listItems[i]; return null; }
+  function updateListUi() {
+    var n = listItems.length, b = $("list-badge");
+    b.hidden = !n; b.textContent = String(n);
+    $("btn-list").setAttribute("aria-label", n ? "My list, " + n + (n === 1 ? " item" : " items") : "My list");
+    var link = $("btn-open-list"); $("list-link-wrap").hidden = !n; link.textContent = "My list (" + n + ")";
+  }
+  function setListBtn() {
+    var on = !!findListItem(state.product || {});
+    $("btn-add-list").textContent = on ? "On my list" : "Add to my list";
+    $("btn-add-list").setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  $("btn-add-list").addEventListener("click", function () {
+    var st = $("list-status");
+    if (!state.result || !state.product) return;
+    var p = cleanProduct(state.product), ex = findListItem(p);
+    if (ex) {
+      ex.result = state.result; ex.product = p; ex.saved_at = new Date().toISOString();
+      st.textContent = saveList() ? "Updated on your list." : "Couldn't save: this device's storage is full.";
+    } else {
+      if (listItems.length >= LIST_MAX) { st.textContent = "Your list is full (" + LIST_MAX + " items). Remove one first."; return; }
+      listItems.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: p.name, size: p.size || "", product: p, result: state.result, saved_at: new Date().toISOString(), done: false });
+      st.textContent = saveList() ? "Added to your list." : "Added, but couldn't save: this device's storage is full.";
+    }
+    setListBtn(); updateListUi();
+  });
+
+  function itemPricesAt(it) { return it.result && it.result.searched_at || it.saved_at; }
+  function ageText(iso) {
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (!(s >= 0)) return { text: "", old: false };
+    if (s < 3600) return { text: "prices from " + Math.max(1, Math.round(s / 60)) + " min ago", old: false };
+    return { text: "prices from " + Math.floor(s / 3600) + " h ago", old: s > 86400 };
+  }
+  function dealText(r) {
+    var m = cwMatch(r) || {}, best = r.best_matchable;
+    if (m.status === "match" && typeof m.you_pay === "number") {
+      return "Pay " + money(m.you_pay) + " at Chemist Warehouse · matching " + (m.competitor_name || (best && best.retailer) || "a competitor") + " " + money(m.competitor_price) + " (CW " + money(m.cw_price) + ")";
+    }
+    if (m.status === "already_cheapest") return "Chemist Warehouse " + money(m.cw_price) + " is already cheapest";
+    if (best && typeof best.price === "number") return "No match found · best " + money(best.price) + " at " + best.retailer;
+    return "No prices yet";
+  }
+  function listTotals() {
+    var pay = 0, save = 0, any = false;
+    listItems.forEach(function (it) {
+      if (it.done) return;
+      var m = cwMatch(it.result) || {};
+      if (m.status === "match" && typeof m.you_pay === "number" && typeof m.cw_price === "number") { pay += m.you_pay; save += m.cw_price - m.you_pay; any = true; }
+      else if (m.status === "already_cheapest" && typeof m.cw_price === "number") { pay += m.cw_price; any = true; }
+    });
+    return any ? { pay: pay, save: save } : null;
+  }
+  var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+  function listCard(it) {
+    var busy = listBusy === it.id, locked = !!listBusy;
+    var age = ageText(itemPricesAt(it));
+    var nameEl = el("div", { class: "l-name" }, [it.name, it.size ? el("span", { class: "l-size", text: " · " + it.size }) : null]);
+    var kids = [nameEl, el("div", { class: "l-deal", text: dealText(it.result) }), age.text ? el("div", { class: "l-age" + (age.old ? " old" : ""), text: age.text + (age.old ? " (over a day old)" : "") }) : null];
+    if (busy) kids.push(el("div", { class: "l-busy", role: "status" }, [el("span", { class: "spinner-sm", "aria-hidden": "true" }), "Refreshing…"]));
+    if (listErrors[it.id]) kids.push(el("p", { class: "msg msg-error", role: "alert", text: listErrors[it.id] }));
+    var got = el("button", { class: "btn btn-secondary btn-sm gotit", type: "button", role: "checkbox", "aria-checked": it.done ? "true" : "false", "data-act": "done" }, [el("span", { class: "box" }), "Got it"]);
+    got.querySelector(".box").innerHTML = CHECK_SVG;
+    var acts = el("div", { class: "card-actions" }, [got]);
+    if (it.result.best_matchable) acts.appendChild(el("button", { class: "btn btn-secondary btn-sm", type: "button", "data-act": "show", text: "Show" }));
+    var rf = el("button", { class: "btn btn-secondary btn-sm", type: "button", "data-act": "refresh", text: "Refresh" });
+    if (locked) rf.disabled = true;
+    acts.appendChild(rf);
+    var rm = el("button", { class: "btn btn-secondary btn-sm", type: "button", "data-act": "remove", text: "Remove" });
+    if (busy) rm.disabled = true;
+    acts.appendChild(rm);
+    kids.push(acts);
+    var li = el("li", { class: "card list-card" + (it.done ? " done" : ""), "data-id": it.id }, kids);
+    if (busy) li.setAttribute("aria-busy", "true");
+    return li;
+  }
+  function renderList(focusSel) {
+    var open = listItems.filter(function (x) { return !x.done; }), done = listItems.filter(function (x) { return x.done; });
+    var tot = listTotals(), tb = $("list-totals");
+    tb.hidden = !tot;
+    if (tot) { tb.textContent = ""; tb.appendChild(document.createTextNode("You'd pay ")); tb.appendChild(el("span", { class: "t-pay", text: money(tot.pay) })); tb.appendChild(document.createTextNode(" · saving " + money(tot.save) + " vs Chemist Warehouse shelf prices")); }
+    var ulo = $("list-open"), uld = $("list-done"); ulo.textContent = ""; uld.textContent = "";
+    open.forEach(function (it) { ulo.appendChild(listCard(it)); });
+    done.forEach(function (it) { uld.appendChild(listCard(it)); });
+    $("list-done-wrap").hidden = !done.length;
+    $("list-done-h").textContent = "Done (" + done.length + ")";
+    $("list-empty").hidden = listItems.length > 0;
+    var canCounter = open.some(function (x) { return counterEntry(x); });
+    $("btn-counter-list").hidden = !canCounter;
+    $("btn-refresh-all").hidden = !open.length;
+    $("btn-refresh-all").disabled = !!listBusy;
+    $("list-h").textContent = listItems.length ? "My list (" + listItems.length + ")" : "My list";
+    updateListUi();
+    if (focusSel) { var f = document.querySelector(focusSel); if (f && !f.disabled) { try { f.focus({ preventScroll: true }); } catch (e) {} } }
+  }
+  function goList() {
+    if (state.abort) { state.abort.abort(); state.abort = null; }
+    if (!lsGet(PIN_KEY)) { showPin(); return; }
+    $("list-progress").textContent = "";
+    renderList();
+    show("list");
+  }
+  $("btn-list").addEventListener("click", goList);
+  $("btn-open-list").addEventListener("click", goList);
+  $("btn-list-home").addEventListener("click", goHome);
+
+  function idOf(btn) { var c = btn.closest("[data-id]"); return c && c.getAttribute("data-id"); }
+  function itemById(id) { for (var i = 0; i < listItems.length; i++) if (listItems[i].id === id) return listItems[i]; return null; }
+  function listClick(ev) {
+    var btn = ev.target.closest("button[data-act]"); if (!btn) return;
+    var id = idOf(btn), it = itemById(id); if (!it) return;
+    var act = btn.getAttribute("data-act");
+    if (act === "done") {
+      it.done = !it.done; saveList(); renderList('[data-id="' + id + '"] [data-act="done"]');
+    } else if (act === "show") {
+      state.result = it.result; state.product = it.product; openSheet();
+    } else if (act === "remove") {
+      listItems = listItems.filter(function (x) { return x.id !== id; }); delete listErrors[id]; saveList(); renderList(); $("list-h").focus();
+    } else if (act === "refresh") {
+      $("list-progress").textContent = "";
+      refreshItem(it).then(function (r) { if (r === "ok" || r === "fail") renderList('[data-id="' + id + '"] [data-act="refresh"]'); });
+    }
+  }
+  $("list-open").addEventListener("click", listClick);
+  $("list-done").addEventListener("click", listClick);
+
+  function errInlineText(err) {
+    if (err.code === "cancelled") return "Cancelled.";
+    return errInfo(err).text;
+  }
+  // Re-run /api/compare for one list item and update it in place. Resolves "ok" | "fail" | "auth".
+  function refreshItem(it) {
+    listBusy = it.id; delete listErrors[it.id]; renderList();
+    return api("/api/compare", { product: cleanProduct(it.product) }).then(function (data) {
+      listBusy = null;
+      it.result = data; it.saved_at = new Date().toISOString();
+      if (!saveList()) listErrors[it.id] = "Updated, but couldn't save: this device's storage is full.";
+      return "ok";
+    }).catch(function (err) {
+      listBusy = null;
+      if (err.status === 401 || err.code === "bad_pin") {
+        lsDel(PIN_KEY); showPin("That PIN was not accepted. Please enter it again."); return "auth";
+      }
+      listErrors[it.id] = errInlineText(err);
+      listErrors._lastCode = err.status;
+      return "fail";
+    });
+  }
+  $("btn-refresh-all").addEventListener("click", function () {
+    if (listBusy) return;
+    var queue = listItems.filter(function (x) { return !x.done; }), n = queue.length, prog = $("list-progress");
+    if (!n) return;
+    if (!window.confirm("Refresh " + n + (n === 1 ? " item" : " items") + "? Each refresh is a paid lookup and can take up to a minute.")) return;
+    var i = 0;
+    function next() {
+      if (i >= n) { prog.textContent = "Refreshed " + n + (n === 1 ? " item." : " items."); renderList(); return; }
+      var it = queue[i++];
+      if (!itemById(it.id)) return next();
+      prog.textContent = "Refreshing " + i + " of " + n + "…";
+      refreshItem(it).then(function (r) {
+        if (r === "auth") return;
+        if (r === "fail" && listErrors._lastCode === 429) { prog.textContent = "Stopped after " + i + " of " + n + ": too many lookups."; renderList(); return; }
+        next();
+      });
+    }
+    next();
+  });
+  $("btn-clear-done").addEventListener("click", function () {
+    listItems = listItems.filter(function (x) { return !x.done; }); saveList(); renderList(); $("list-h").focus();
+  });
+
+  /* whole-list counter sheet */
+  function counterEntry(it) {
+    var m = cwMatch(it.result) || {}, b = it.result.best_matchable;
+    return m.status === "match" && b ? { it: it, m: m, b: b } : null;
+  }
+  function openListSheet() {
+    var entries = listItems.filter(function (x) { return !x.done; }).map(counterEntry).filter(Boolean);
+    if (!entries.length) return;
+    var box = $("lsheet-items"); box.textContent = "";
+    entries.forEach(function (e) {
+      var u = safeUrl(e.b.url);
+      box.appendChild(el("div", { class: "lsheet-item" }, [
+        el("div", { class: "li-name", text: [e.it.name, e.it.size].filter(Boolean).join(" · ") }),
+        el("div", { class: "li-comp", text: e.m.competitor_name || e.b.retailer }),
+        el("div", { class: "li-price", text: money(typeof e.m.competitor_price === "number" ? e.m.competitor_price : e.b.price) }),
+        u ? el("a", { href: u, target: "_blank", rel: "noopener noreferrer", text: u }) : el("span", { class: "small", text: "(no link available)" })
+      ]));
+    });
+    var ul = $("lsheet-policy"); ul.textContent = "";
+    policyBullets(entries[0].it.result).forEach(function (t) { ul.appendChild(el("li", { text: t })); });
+    listCounterOpener = document.activeElement;
+    $("lsheet").hidden = false; document.body.style.overflow = "hidden"; $("lsheet").scrollTop = 0;
+    $("lsheet-title").focus();
+  }
+  function closeListSheet() {
+    $("lsheet").hidden = true; document.body.style.overflow = "";
+    if (listCounterOpener && listCounterOpener.focus) listCounterOpener.focus();
+  }
+  $("btn-counter-list").addEventListener("click", openListSheet);
+  $("lsheet-close").addEventListener("click", closeListSheet);
+
+  updateListUi();
 
   /* ---------- boot ---------- */
   goHome();
