@@ -1,7 +1,7 @@
 // POST /api/compare  { product }  ->  prices, matchability and Chemist Warehouse match verdict
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import {
-  REPAIR_MODEL, buildCompareTools, createWithContinuations, extractJson, getClient, getCompareEffort, getCompareModel, sendError, textBlocks,
+  REPAIR_MODEL, buildCompareTools, createWithContinuations, extractJson, getClient, getCompareEffort, getCompareModel, getMaxSearches, sendError, textBlocks,
 } from "../lib/anthropic.js";
 import { HttpError, fail, guard } from "../lib/auth.js";
 import { RETAILER_DOMAINS, buildComparison } from "../lib/policy.js";
@@ -11,13 +11,18 @@ import { mockDelay, mockModelCompare } from "../lib/mock.js";
 const SYSTEM = `You are a price researcher for Australian shoppers preparing a Chemist Warehouse price match.
 Goal: find today's advertised price for the EXACT product (same brand, form, strength and pack size) at as many Australian
 retailers as you can, always including Chemist Warehouse and Amcal themselves.
-Method: first run one broad search for the product name to learn which pack sizes and forms actually exist and who stocks it.
-Then run targeted searches or fetches for the exact pack at Chemist Warehouse, Amcal and the other retailers. Prefer the
-retailer's own product page. Read the price shown today in AUD, whether it is a promo or special (and the was-price if shown),
-the product URL, and stock status if visible.
+Web searches are scarce (the user message says how many you have) and each costs money; page fetches cost far less,
+so prefer fetching a known product URL over searching again. Spend searches in this order:
+1. Chemist Warehouse's own page and price for this product (search within chemistwarehouse.com.au). This is essential.
+2. Amcal's page and price (amcal.com.au).
+3. One broad search for the product name plus "price" across all retailers; its snippets usually show several prices at once.
+4. Only then, targeted searches for retailers still missing, Priceline and the supermarkets first.
+Read the price shown today in AUD, whether it is a promo or special (and the was-price if shown), the product URL, and
+stock status if visible. A price read from a search snippet is acceptable; note "from search snippet".
 If the exact pack size or variant is not sold somewhere, still report the closest product you priced there (same brand,
 nearest pack size or form) with "exact": false and say what differs in notes, so the shopper can see it. Say in summary
-when the exact product could not be found anywhere. Never invent a price or URL: only report what you actually saw.
+when the exact product could not be found anywhere, and name any major retailer you did not get to check. Do not talk about
+tools, limits or your process. Never invent a price or URL: only report what you actually saw.
 Budget your searches; do not spend them all on one retailer.
 The stores array is the answer; the summary is only commentary. Add a row for EVERY retailer where you saw a price for the
 exact product, including prices read from search snippets (note "from search snippet"), and including Chemist Warehouse's
@@ -73,7 +78,7 @@ async function researchPrices(product) {
     model: getCompareModel(),
     max_tokens: 8000,
     system: SYSTEM,
-    messages: [{ role: "user", content: `Today is ${today}. Product: ${describeProduct(product)}` }],
+    messages: [{ role: "user", content: `Today is ${today}. You have ${getMaxSearches()} web searches and 6 page fetches. Product: ${describeProduct(product)}` }],
     tools: buildCompareTools(RETAILER_DOMAINS),
     output_config: { effort: getCompareEffort() },
   });
