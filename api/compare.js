@@ -53,7 +53,10 @@ async function repair(rawText) {
   const response = await getClient().messages.parse({
     model: REPAIR_MODEL,
     max_tokens: 4000,
-    system: "Extract the retailer price list from the text into the required structure. Do not invent data.",
+    system:
+      "Extract the retailer price list from the text into the required structure. Include a store only when the text states " +
+      "an explicit dollar price for this product at that store. If a page was blocked, failed to load, or shows no price, omit " +
+      "that store entirely. Never guess, estimate or infer a price. Copy the summary from the text if there is one.",
     messages: [{ role: "user", content: rawText }],
     output_config: { format: zodOutputFormat(ModelCompareOutput) },
   });
@@ -74,7 +77,10 @@ async function researchPrices(product) {
 
   const texts = textBlocks(response.content);
   let out = parseModelText(texts);
-  if (!out && texts.length) out = await repair(texts.join("\n"));
+  if (!out && texts.length) {
+    console.warn("[compare] model output was not valid JSON; running repair. stop_reason=%s text=%s", response.stop_reason, texts.join("\n").slice(0, 3000));
+    out = await repair(texts.join("\n"));
+  }
   if (!out) throw new HttpError(502, response.stop_reason === "max_tokens" ? "model_truncated" : "model_unparseable");
   return { out, usage };
 }

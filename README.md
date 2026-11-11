@@ -39,7 +39,7 @@ Only requests carrying the right PIN reach the API, and the functions rate limit
 
 ## Cost
 
-Each lookup is one vision call plus one web search call. A real lookup measured about 60k input tokens, 1.6k output tokens and 8 web searches, which is roughly 35 cents at current Claude Opus 5.5 and web search pricing. Setting `CLAUDE_MODEL=claude-sonnet-5-5` roughly halves that. Lower `MAX_SEARCHES` to cap it.
+Each lookup is one vision call plus one web search call. With prompt caching on, a live lookup measured about 13k fresh input tokens, 108k cached input tokens, 4k output tokens and 2 web searches, which is roughly 15 to 25 cents at current Claude Opus 5.5 and web search pricing. Setting `CLAUDE_MODEL=claude-sonnet-5-5` roughly halves that. Lower `MAX_SEARCHES` to cap it.
 
 ## Status
 

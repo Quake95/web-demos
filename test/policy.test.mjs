@@ -63,6 +63,21 @@ test("buildComparison over mock data", () => {
   assert.ok(r.stores.every((s, i, a) => i === 0 || a[i - 1].price <= s.price));
 });
 
+test("buildComparison: implausibly low competitor price is flagged, not matched", () => {
+  const row = (retailer, url, price, extra = {}) => ({ retailer, url, price, was_price: null, promo: false, in_stock: true, notes: "", ...extra });
+  const r = buildComparison({}, { stores: [
+    row("Chemist Warehouse", "https://chemistwarehouse.com.au/a", 38.49),
+    row("Amcal", "https://amcal.com.au/a", 2),
+    row("Priceline", "https://priceline.com.au/a", 35),
+    row("Coles", "https://coles.com.au/a", 0.1),
+  ] });
+  const amcal = r.stores.find((s) => s.retailer === "Amcal");
+  assert.equal(amcal.matchable, "maybe");
+  assert.equal(r.best_matchable.retailer, "Priceline");
+  assert.equal(r.match.chemist_warehouse.status, "match");
+  assert.ok(!r.stores.some((s) => s.retailer === "Coles"), "sub-50c rows are dropped");
+});
+
 test("buildComparison: already_cheapest and unknown", () => {
   const row = (retailer, url, price, extra = {}) => ({ retailer, url, price, was_price: null, promo: false, in_stock: true, notes: "", ...extra });
   const cheap = buildComparison({}, { stores: [row("Chemist Warehouse", "https://chemistwarehouse.com.au/a", 9), row("Coles", "https://coles.com.au/a", 10)] });
