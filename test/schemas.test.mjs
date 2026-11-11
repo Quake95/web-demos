@@ -46,5 +46,14 @@ test("ModelCompareOutput with normalisation", () => {
   const ok = ModelCompareOutput.safeParse(normaliseModelCompare(raw));
   assert.ok(ok.success);
   assert.equal(ok.data.stores[0].in_stock, null);
-  assert.equal(ModelCompareOutput.safeParse(normaliseModelCompare({ stores: [{ retailer: "x", url: "", price: "5" }] })).success, false);
+  // numeric strings are parsed; non-numeric ones still fail validation
+  assert.equal(ModelCompareOutput.safeParse(normaliseModelCompare({ stores: [{ retailer: "x", url: "", price: "5" }] })).data.stores[0].price, 5);
+  assert.equal(ModelCompareOutput.safeParse(normaliseModelCompare({ stores: [{ retailer: "x", url: "", price: "unknown" }] })).success, false);
+});
+
+test("normaliseModelCompare parses string prices like \"$26.99\"", () => {
+  const out = normaliseModelCompare({ stores: [{ retailer: "Priceline", url: "https://priceline.com.au/x", price: "$26.99", was_price: "RRP $33.99" }], summary: "" });
+  assert.equal(out.stores[0].price, 26.99);
+  assert.equal(out.stores[0].was_price, 33.99);
+  assert.ok(ModelCompareOutput.safeParse(out).success);
 });

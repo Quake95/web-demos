@@ -32,7 +32,7 @@ tradie/, accountant/     older demo pages, unrelated
 2. Settings -> Environment Variables (Production):
    - `ANTHROPIC_API_KEY` from console.anthropic.com
    - `APP_PIN` a 4-8 digit PIN only you and Steph know
-   - optional `IDENTIFY_MODEL` (default `claude-haiku-5-5`), `COMPARE_MODEL` (default `claude-sonnet-5-5`), `COMPARE_EFFORT` (default `low`), `MAX_SEARCHES` (default 10). `CLAUDE_MODEL` overrides both models at once.
+   - optional `IDENTIFY_MODEL` (default `claude-haiku-5-5`), `COMPARE_MODEL` (default `claude-sonnet-5-5`), `COMPARE_EFFORT` (default `medium`), `MAX_SEARCHES` (default 8). `CLAUDE_MODEL` overrides both models at once.
 3. Deploy. Open the URL on the phone, enter the PIN once, then use the browser's "Add to Home Screen".
 
 Only requests carrying the right PIN reach the API, and the functions rate limit per IP, so a leaked URL cannot spend your credit.

@@ -19,8 +19,10 @@ If the exact pack size or variant is not sold somewhere, still report the closes
 nearest pack size or form) with "exact": false and say what differs in notes, so the shopper can see it. Say in summary
 when the exact product could not be found anywhere. Never invent a price or URL: only report what you actually saw.
 Budget your searches; do not spend them all on one retailer.
-Every price you mention in summary must also appear as a row in stores; if two sources disagree, report the lower one and
-put the doubt in notes. Keep notes under 15 words and summary under 2 sentences. Do not narrate your process.
+The stores array is the answer; the summary is only commentary. Add a row for EVERY retailer where you saw a price for the
+exact product, including prices read from search snippets (note "from search snippet"), and including Chemist Warehouse's
+own price. Never mention a price in summary that is not also a row. If two sources disagree, use the lower one and put the
+doubt in notes. Keep notes under 15 words and summary under 2 sentences. Do not narrate your process.
 When done, reply with ONLY a JSON object, no prose and no code fences, in this shape:
 {"stores":[{"retailer":"Woolworths","url":"https://...","price":12.5,"was_price":15.0,"promo":true,"in_stock":true,"exact":true,"notes":"half price this week"}],"summary":"one or two sentences"}
 Use null for was_price or in_stock when unknown. exact is true only when brand, form, strength and pack size all match.`;
