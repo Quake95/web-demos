@@ -39,11 +39,23 @@ Only requests carrying the right PIN reach the API, and the functions rate limit
 
 ## Cost
 
-Each lookup is one vision call plus one web search call. With prompt caching on, a live lookup measured about 13k fresh input tokens, 108k cached input tokens, 4k output tokens and 2 web searches, which is roughly 15 to 25 cents at current Claude Opus 5.5 and web search pricing. Setting `CLAUDE_MODEL=claude-sonnet-5-5` roughly halves that. Lower `MAX_SEARCHES` to cap it.
+Measured on the live deployment (Haiku 5.5 for identification, Sonnet 5.5 at medium effort for research, prompt caching on):
+
+| Step | Typical | Cost |
+|---|---|---|
+| Identify from photo | 3 s | under 1 cent |
+| Identify from typed name | skipped | 0 |
+| Price research | 30 to 50 s, 4 to 8 searches | 10 to 15 cents |
+
+Web searches are now the largest slice (about 1 cent each), so `MAX_SEARCHES` is the main dial. Reopening a recent
+lookup within an hour costs nothing. Setting `COMPARE_MODEL=claude-opus-5-5` improves thoroughness at roughly
+double the token cost.
 
 ## Status
 
-Unit tests and the full phone flow pass in mock mode. The live Claude calls (photo identification and the web search price research) were not exercised in the build environment because it has no API key, so the first real lookup after deploying is the live test. If it fails, the error screen names the cause (missing key, model refused, upstream error) and the function logs in Vercel show the detail.
+Verified against the live deployment: photo identification, typed-name lookups, and price research on several
+products, including correct handling of a bot-blocked retailer page and a different-size listing. Unit tests
+(`npm test`) and a Playwright run of the full phone flow in mock mode also pass.
 
 ## Local development
 
