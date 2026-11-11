@@ -204,6 +204,9 @@
 
     .disclaimer { color: var(--muted); font-size: 14px; }
 
+    .notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 14px; border-radius: 12px; background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border); font-weight: 600; font-size: 15px; }
+    .notice .btn { min-height: 44px; padding: 6px 14px; font-size: 16px; flex: none; }
+
     /* counter sheet */
     .sheet { position: fixed; inset: 0; z-index: 50; background: var(--surface); color: var(--text); overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .sheet-inner { max-width: 640px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 20px; }
@@ -324,6 +327,10 @@
 
     <!-- 6. Results -->
     <section class="screen" id="screen-results" data-screen="results" hidden>
+      <div class="notice" id="cache-notice" role="status" hidden>
+        <span id="cache-text"></span>
+        <button class="btn btn-secondary" id="btn-refresh" type="button">Refresh prices</button>
+      </div>
       <h2 class="sr-only" tabindex="-1" id="results-h">Results</h2>
       <div id="verdict"></div>
       <p class="prod-line" id="results-product"></p>
@@ -523,12 +530,18 @@
       name: name, when: new Date().toISOString(),
       best: result.best_matchable ? { retailer: result.best_matchable.retailer, price: result.best_matchable.price } : null,
       cw_price: cw && typeof cw.cw_price === "number" ? cw.cw_price : (result.chemist_warehouse ? result.chemist_warehouse.price : null),
-      product: product
+      product: product,
+      result: result
     };
     var list = loadRecent().filter(function (x) { return !(x.name === name && x.product && x.product.search_query === product.search_query); });
     list.unshift(entry);
-    lsSet(RECENT_KEY, JSON.stringify(list.slice(0, 10)));
+    list = list.slice(0, 10);
+    if (writeRecent(list)) return;
+    // quota: keep the newest result, drop stored results from older entries, retry once
+    list.forEach(function (x, i) { if (i > 0) delete x.result; });
+    writeRecent(list);
   }
+  function writeRecent(list) { try { localStorage.setItem(RECENT_KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
   function ago(iso) {
     var s = (Date.now() - new Date(iso).getTime()) / 1000;
     if (!(s >= 0)) return "";
@@ -545,7 +558,16 @@
       var price = r.best ? el("span", { class: "r-price", text: money(r.best.price) }) : el("span", { class: "r-when", text: "no match" });
       var left = el("span", {}, [el("span", { class: "r-name", text: r.name }), el("br"), el("span", { class: "r-when", text: (r.best ? r.best.retailer + " · " : "") + (r.cw_price != null ? "CW " + money(r.cw_price) + " · " : "") + ago(r.when) })]);
       var b = el("button", { type: "button" }, [left, price]);
-      b.addEventListener("click", function () { if (r.product) runCompare(r.product); else runIdentify({ text: r.name }); });
+      b.addEventListener("click", function () {
+        var product = r.product || { name: r.name, search_query: r.name };
+        var age = Date.now() - new Date(r.when).getTime();
+        if (r.result && age >= 0 && age < 60 * 60 * 1000) {
+          if (state.abort) { state.abort.abort(); state.abort = null; }
+          state.product = product;
+          state.result = r.result;
+          renderResults(r.result, r.when);
+        } else runCompare(product);
+      });
       ul.appendChild(el("li", {}, [b]));
     });
   }
@@ -601,7 +623,7 @@
     var t = $("text-input").value.trim();
     if (t.length < 2) { var e = $("home-error"); e.hidden = false; e.textContent = "Type at least a brand and product name."; $("text-input").focus(); return; }
     state.imageUrl = null;
-    runIdentify({ text: t });
+    runCompare({ name: t, search_query: t });
   });
 
   /* ---------- Identify ---------- */
@@ -613,8 +635,7 @@
     api("/api/identify", body, ctl.signal).then(function (data) {
       if (state.abort !== ctl) return;
       state.abort = null;
-      state.typed = body.text || "";
-      showConfirm(data.product || {}, body.text);
+      showConfirm(data.product || {});
     }).catch(function (err) {
       if (state.abort !== ctl && err.code === "cancelled") return;
       state.abort = null;
@@ -625,7 +646,7 @@
   $("btn-cancel2").addEventListener("click", goHome);
 
   /* ---------- Confirm ---------- */
-  function showConfirm(p, typed) {
+  function showConfirm(p) {
     state.product = p;
     var ok = p.is_product !== false;
     $("confirm-name").textContent = ok ? (p.name || "Unnamed product") : "That doesn't look like a product";
@@ -639,7 +660,7 @@
     if (ok && typeof p.confidence === "number" && p.confidence < 0.6) {
       facts.appendChild(el("dt", { text: "Confidence" })); facts.appendChild(el("dd", { text: "Low. Please check the name." }));
     }
-    $("confirm-query").value = ok ? (p.search_query || p.name || "") : (typed || "");
+    $("confirm-query").value = ok ? (p.search_query || p.name || "") : "";
     $("confirm-query").placeholder = ok ? "" : "Type the product name";
     show("confirm", ok ? "h2" : "#confirm-query");
     if (!ok) $("confirm-query").focus();
@@ -650,8 +671,8 @@
     if (!q) { $("confirm-query").focus(); return; }
     var p = state.product || {};
     if (p.is_product === false) {
-      // she typed the name instead: re-run identify so the model normalises it
-      runIdentify({ text: q });
+      // she typed the name instead: skip identify and compare directly
+      runCompare({ name: q, search_query: q });
       return;
     }
     var edited = Object.assign({}, p, { search_query: q });
@@ -692,7 +713,14 @@
 
   /* ---------- Results ---------- */
   function cwMatch(r) { return r.match && r.match.chemist_warehouse; }
-  function renderResults(r) {
+  function renderResults(r, cachedAt) {
+    var notice = $("cache-notice");
+    notice.hidden = !cachedAt;
+    if (cachedAt) {
+      var mins = Math.max(1, Math.round((Date.now() - new Date(cachedAt).getTime()) / 60000));
+      $("cache-text").textContent = "Prices from " + mins + " min ago";
+      $("btn-refresh").onclick = function () { runCompare(state.product); };
+    }
     var p = r.product || state.product || {};
     var m = cwMatch(r) || { status: "unknown" };
     var v = $("verdict"); v.textContent = "";

@@ -1,5 +1,5 @@
 /* Price Match service worker: installability + offline shell. Never touches /api. */
-const CACHE_NAME = "pricematch-shell-v2";
+const CACHE_NAME = "pricematch-shell-v3";
 const SHELL = [
   "/",
   "/index.html",
