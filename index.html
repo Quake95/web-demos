@@ -445,7 +445,7 @@
   function api(path, body, signal) {
     var ctrl = new AbortController();
     var timedOut = false;
-    var timer = setTimeout(function () { timedOut = true; ctrl.abort(); }, 90000);
+    var timer = setTimeout(function () { timedOut = true; ctrl.abort(); }, 150000);
     if (signal) signal.addEventListener("abort", function () { ctrl.abort(); });
     return fetch(path, {
       method: "POST",
@@ -474,7 +474,7 @@
     var title = "Something went wrong", text;
     switch (true) {
       case err.code === "network": title = "No connection"; text = "Couldn't reach the server. Check your signal or Wi-Fi and try again."; break;
-      case err.code === "timeout": title = "Taking too long"; text = "The search timed out after 90 seconds. Try again."; break;
+      case err.code === "timeout": title = "Taking too long"; text = "The search timed out after 150 seconds. Try again."; break;
       case err.status === 429: title = "Slow down a moment"; text = "Too many lookups in a short time. Wait a few minutes, then try again."; break;
       case err.status === 503: title = "Not set up yet"; text = "The server isn't configured (missing PIN or API key)."; break;
       case err.status === 502: title = "Couldn't get an answer"; text = err.code === "model_refused" ? "The AI declined to answer for this product. Try typing the name instead." : "The price lookup failed on the server. Try again, or edit the product name."; break;
