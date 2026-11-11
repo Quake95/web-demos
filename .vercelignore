@@ -1,0 +1,4 @@
+test/
+docs/
+scripts/
+.env.example

@@ -1,0 +1,17 @@
+{
+  "name": "price-match-helper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Snap a product, find cheaper Australian prices, and get it price matched at Chemist Warehouse.",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "dev:mock": "MOCK_API=1 APP_PIN=1234 node scripts/dev-server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "zod": "^4.0.0"
+  }
+}

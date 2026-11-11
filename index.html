@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Price Match</title>
+  <meta name="description" content="Snap a product, find the cheapest Australian price, and know if Chemist Warehouse will match it." />
+  <meta name="theme-color" content="#15803d" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Price Match" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f6f3ec;
+      --surface: #ffffff;
+      --surface-2: #efebe2;
+      --text: #1c1917;
+      --muted: #57534e;
+      --border: #d6d1c6;
+      --primary: #15803d;
+      --primary-hover: #166534;
+      --on-primary: #ffffff;
+      --primary-soft: #dcfce7;
+      --primary-ink: #14532d;
+      --amber: #92400e;
+      --amber-soft: #fef3c7;
+      --amber-border: #f59e0b;
+      --grey: #44403c;
+      --grey-soft: #e7e5e4;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+      --focus: #1d4ed8;
+      --shadow: 0 1px 2px rgba(28,25,23,.08), 0 4px 14px rgba(28,25,23,.06);
+      --radius: 16px;
+      --tap: 52px;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #12110f; --surface: #1d1b18; --surface-2: #292622; --text: #f7f4ee; --muted: #b9b3a8;
+        --border: #3d3933; --primary: #4ade80; --primary-hover: #86efac; --on-primary: #052e16;
+        --primary-soft: #0f2d1a; --primary-ink: #bbf7d0; --amber: #fcd34d; --amber-soft: #33270a;
+        --amber-border: #b45309; --grey: #d6d3d1; --grey-soft: #2c2926; --danger: #fca5a5; --danger-soft: #3b1414;
+        --focus: #93c5fd; --shadow: 0 1px 2px rgba(0,0,0,.5); color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #12110f; --surface: #1d1b18; --surface-2: #292622; --text: #f7f4ee; --muted: #b9b3a8;
+      --border: #3d3933; --primary: #4ade80; --primary-hover: #86efac; --on-primary: #052e16;
+      --primary-soft: #0f2d1a; --primary-ink: #bbf7d0; --amber: #fcd34d; --amber-soft: #33270a;
+      --amber-border: #b45309; --grey: #d6d3d1; --grey-soft: #2c2926; --danger: #fca5a5; --danger-soft: #3b1414;
+      --focus: #93c5fd; --shadow: 0 1px 2px rgba(0,0,0,.5); color-scheme: dark;
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 17px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 8px; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    .app { max-width: 560px; margin: 0 auto; padding: 0 16px calc(32px + env(safe-area-inset-bottom)); }
+    header.top {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: calc(10px + env(safe-area-inset-top)) 0 10px; min-height: 64px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; }
+    .top-actions { display: flex; gap: 4px; }
+
+    h1, h2, h3 { letter-spacing: -.02em; line-height: 1.2; }
+    h1 { font-size: 28px; font-weight: 800; }
+    h2 { font-size: 22px; font-weight: 700; }
+    h1:focus, h2:focus { outline: none; }
+    .lede { color: var(--muted); margin-top: 6px; }
+    section.screen { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+    label.field > span { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type=text], input[type=password], input[type=search], input[type=tel], input[type=number] {
+      width: 100%; min-height: var(--tap); padding: 12px 14px; font: inherit; font-size: 18px;
+      color: var(--text); background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+    }
+    input::placeholder { color: var(--muted); opacity: .8; }
+    input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+    .hint { color: var(--muted); font-size: 15px; margin-top: 6px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: var(--tap); padding: 12px 20px; border-radius: 14px; border: 2px solid transparent;
+      font: inherit; font-weight: 700; font-size: 18px; cursor: pointer; text-decoration: none;
+      -webkit-tap-highlight-color: transparent; transition: transform .06s ease, background .15s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn svg { width: 24px; height: 24px; flex: none; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--surface-2); }
+    .btn-ghost { background: transparent; color: var(--muted); min-height: 48px; padding: 8px 12px; font-weight: 600; font-size: 16px; }
+    .btn-block { width: 100%; }
+    .btn-xl { min-height: 88px; font-size: 22px; border-radius: 20px; flex-direction: column; gap: 6px; }
+    .btn-xl svg { width: 34px; height: 34px; }
+    .btn[disabled] { opacity: .55; cursor: not-allowed; }
+    .icon-btn { min-width: 48px; min-height: 48px; border: 0; background: transparent; color: var(--muted); border-radius: 12px; cursor: pointer; display: grid; place-items: center; }
+    .icon-btn svg { width: 24px; height: 24px; }
+    .row { display: flex; gap: 10px; }
+    .row > * { flex: 1; }
+    .or { text-align: center; color: var(--muted); font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 12px; }
+    .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+    .msg { padding: 12px 14px; border-radius: 12px; font-weight: 500; }
+    .msg-error { background: var(--danger-soft); color: var(--danger); border: 1px solid currentColor; }
+    .status { color: var(--muted); font-weight: 500; text-align: center; }
+
+    /* recent */
+    .recent { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .recent button {
+      width: 100%; text-align: left; min-height: 56px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font: inherit; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .recent button:hover { background: var(--surface-2); }
+    .recent .r-name { font-weight: 600; overflow-wrap: anywhere; }
+    .recent .r-when { color: var(--muted); font-size: 14px; }
+    .recent .r-price { font-weight: 800; color: var(--primary-ink); white-space: nowrap; }
+    .section-title { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+
+    /* identifying */
+    .preview { width: 100%; max-height: 46vh; object-fit: contain; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); }
+    .spinner { width: 44px; height: 44px; border-radius: 50%; border: 5px solid var(--border); border-top-color: var(--primary); animation: spin .8s linear infinite; margin: 8px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } .btn { transition: none; } }
+
+    /* confirm */
+    .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin-top: 10px; }
+    .facts dt { color: var(--muted); font-weight: 600; }
+    .facts dd { font-weight: 600; overflow-wrap: anywhere; }
+    .pname { font-size: 22px; font-weight: 800; letter-spacing: -.02em; overflow-wrap: anywhere; }
+    .thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); flex: none; }
+    .id-head { display: flex; gap: 14px; align-items: flex-start; }
+
+    /* verdict */
+    .verdict { border-radius: 20px; padding: 20px 18px; border: 2px solid; }
+    .verdict .v-kicker { font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .07em; }
+    .verdict .v-title { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; margin-top: 6px; }
+    .verdict .v-big { font-size: 48px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; margin-top: 4px; }
+    .verdict .v-sub { margin-top: 8px; font-weight: 500; }
+    .verdict.yes { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
+    .verdict.cheapest { background: var(--surface); border-color: var(--primary); }
+    .verdict.cheapest .v-kicker { color: var(--primary); }
+    .verdict.unknown { background: var(--amber-soft); border-color: var(--amber-border); color: var(--amber); }
+    .verdict-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+
+    .prod-line { color: var(--muted); font-weight: 500; overflow-wrap: anywhere; }
+    .cw-amcal { display: grid; gap: 10px; }
+    .brow { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .brow .b-name { font-weight: 700; }
+    .brow .b-price { font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+    .brow a { font-weight: 600; color: var(--primary-ink); }
+    .small { font-size: 15px; color: var(--muted); }
+
+    ul.stores { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .store { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: grid; gap: 6px; }
+    .store.best { border: 2px solid var(--primary); }
+    .store-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    .store-name { font-weight: 700; font-size: 18px; overflow-wrap: anywhere; }
+    .store-price { font-weight: 800; font-size: 22px; white-space: nowrap; }
+    .store-price s { color: var(--muted); font-weight: 500; font-size: 15px; margin-right: 6px; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+    .badge.yes { background: var(--primary-soft); color: var(--primary-ink); }
+    .badge.maybe { background: var(--amber-soft); color: var(--amber); }
+    .badge.no { background: var(--grey-soft); color: var(--grey); }
+    .badge.self { background: var(--surface-2); color: var(--text); }
+    .store a.visit { display: inline-flex; align-items: center; min-height: 48px; font-weight: 700; color: var(--primary-ink); }
+    .store .note { color: var(--muted); font-size: 15px; }
+
+    details.policy { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    details.policy summary { min-height: 56px; display: flex; align-items: center; padding: 0 16px; font-weight: 700; cursor: pointer; list-style: none; }
+    details.policy summary::-webkit-details-marker { display: none; }
+    details.policy summary::after { content: "+"; margin-left: auto; font-size: 26px; color: var(--muted); }
+    details.policy[open] summary::after { content: "\2013"; }
+    details.policy .body { padding: 0 16px 16px; display: grid; gap: 10px; }
+    details.policy ul { padding-left: 20px; display: grid; gap: 8px; }
+    details.policy h3 { font-size: 17px; margin-top: 4px; }
+
+    .disclaimer { color: var(--muted); font-size: 14px; }
+
+    /* counter sheet */
+    .sheet { position: fixed; inset: 0; z-index: 50; background: var(--surface); color: var(--text); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .sheet-inner { max-width: 640px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 20px; }
+    .sheet-bar { display: flex; justify-content: space-between; align-items: center; }
+    .sheet-kicker { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); }
+    .sheet-product { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; overflow-wrap: anywhere; }
+    .sheet-price-card { background: var(--primary-soft); border: 3px solid var(--primary); border-radius: 22px; padding: 22px 18px; color: var(--primary-ink); }
+    .sheet-comp { font-size: 34px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; overflow-wrap: anywhere; }
+    .sheet-price { font-size: 76px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
+    .sheet-url { display: block; font-size: 20px; font-weight: 700; word-break: break-all; color: var(--focus); padding: 12px 0; min-height: 48px; }
+    .sheet-url-plain { font-size: 15px; color: var(--muted); word-break: break-all; }
+    .sheet ul { padding-left: 24px; display: grid; gap: 10px; font-size: 18px; }
+    .sheet .ask { font-size: 20px; font-weight: 700; }
+
+    @media (min-width: 700px) {
+      .app { padding-top: 12px; }
+      .verdict-actions { flex-direction: row; }
+      .verdict-actions .btn { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><img src="icons/icon-192.png" alt="" width="36" height="36" /><span>Price Match</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-theme" type="button" aria-label="Switch light or dark theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-lock" type="button" aria-label="Forget PIN on this device" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 1. PIN -->
+    <section class="screen" id="screen-pin" data-screen="pin" hidden>
+      <div>
+        <h1 tabindex="-1">Enter your PIN</h1>
+        <p class="lede">Your 4 to 8 digit PIN unlocks the app. It is remembered on this phone.</p>
+      </div>
+      <form id="pin-form" class="card" autocomplete="off" novalidate>
+        <label class="field"><span>PIN</span>
+          <input id="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="off" aria-describedby="pin-error" />
+        </label>
+        <p id="pin-error" class="msg msg-error" role="alert" hidden style="margin-top:12px"></p>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:14px">Unlock</button>
+      </form>
+    </section>
+
+    <!-- 2. Home -->
+    <section class="screen" id="screen-home" data-screen="home" hidden>
+      <div>
+        <h1 tabindex="-1">What are you checking?</h1>
+        <p class="lede">Photograph the product, or type its name.</p>
+      </div>
+      <label class="btn btn-primary btn-xl btn-block" id="photo-label" for="photo-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="4"/></svg>
+        Take a photo
+      </label>
+      <input class="sr-only" id="photo-input" type="file" accept="image/*" capture="environment" />
+      <div class="or" aria-hidden="true">or type the product</div>
+      <form id="text-form" class="card" novalidate>
+        <label class="field"><span>Product name</span>
+          <input id="text-input" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="sentences" placeholder="e.g. Nurofen Zavance 96" />
+        </label>
+        <button class="btn btn-secondary btn-block" type="submit" style="margin-top:12px">Search</button>
+      </form>
+      <div id="home-error" class="msg msg-error" role="alert" hidden></div>
+      <div id="recent-wrap" hidden>
+        <h2 class="section-title" id="recent-h" style="margin-bottom:10px">Recent lookups</h2>
+        <ul class="recent" id="recent-list" aria-labelledby="recent-h"></ul>
+        <button class="btn btn-ghost" id="btn-clear-recent" type="button" style="margin-top:6px">Clear recent</button>
+      </div>
+    </section>
+
+    <!-- 3. Identifying -->
+    <section class="screen" id="screen-identifying" data-screen="identifying" hidden>
+      <h2 tabindex="-1" id="busy-title">Identifying product</h2>
+      <img class="preview" id="preview" alt="Photo you took" hidden />
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="status" id="busy-status" role="status" aria-live="polite">Reading the label…</p>
+      <button class="btn btn-secondary btn-block" id="btn-cancel" type="button">Cancel</button>
+    </section>
+
+    <!-- 4. Confirm -->
+    <section class="screen" id="screen-confirm" data-screen="confirm" hidden>
+      <h2 tabindex="-1">Is this the right product?</h2>
+      <div class="card" id="confirm-card">
+        <div class="id-head">
+          <img class="thumb" id="confirm-thumb" alt="" hidden />
+          <div style="min-width:0">
+            <div class="pname" id="confirm-name"></div>
+            <p class="small" id="confirm-notes"></p>
+          </div>
+        </div>
+        <dl class="facts" id="confirm-facts"></dl>
+      </div>
+      <form id="confirm-form" class="card" novalidate>
+        <label class="field"><span>Search for</span>
+          <input id="confirm-query" type="text" autocomplete="off" aria-describedby="confirm-hint" />
+        </label>
+        <p class="hint" id="confirm-hint">Edit this if the name, size or strength is wrong. Exact size matters for price matching.</p>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:14px">Looks right, find prices</button>
+      </form>
+      <button class="btn btn-secondary btn-block" id="btn-retake" type="button">Retake</button>
+    </section>
+
+    <!-- 5. Comparing -->
+    <section class="screen" id="screen-comparing" data-screen="comparing" hidden>
+      <h2 tabindex="-1">Checking prices</h2>
+      <p class="prod-line" id="comparing-name"></p>
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="status" id="comparing-status" role="status" aria-live="polite">Searching Australian retailers. This can take up to a minute.</p>
+      <button class="btn btn-secondary btn-block" id="btn-cancel2" type="button">Cancel</button>
+    </section>
+
+    <!-- 6. Results -->
+    <section class="screen" id="screen-results" data-screen="results" hidden>
+      <h2 class="sr-only" tabindex="-1" id="results-h">Results</h2>
+      <div id="verdict"></div>
+      <p class="prod-line" id="results-product"></p>
+      <div class="card cw-amcal" id="cw-amcal"></div>
+      <div>
+        <h3 class="section-title" style="margin-bottom:10px">All prices, cheapest first</h3>
+        <ul class="stores" id="stores"></ul>
+      </div>
+      <p class="small" id="results-summary"></p>
+      <details class="policy" id="policy">
+        <summary>How price matching works</summary>
+        <div class="body" id="policy-body"></div>
+      </details>
+      <p class="disclaimer" id="results-disclaimer"></p>
+      <div class="row">
+        <button class="btn btn-secondary" id="btn-copy" type="button">Copy summary</button>
+        <button class="btn btn-secondary" id="btn-new" type="button">New search</button>
+      </div>
+      <p class="status" id="copy-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- Error -->
+    <section class="screen" id="screen-error" data-screen="error" hidden>
+      <h2 tabindex="-1" id="error-title">Something went wrong</h2>
+      <p class="msg msg-error" id="error-text" role="alert"></p>
+      <button class="btn btn-primary btn-block" id="btn-retry" type="button">Try again</button>
+      <button class="btn btn-secondary btn-block" id="btn-error-home" type="button">Back to start</button>
+    </section>
+  </main>
+</div>
+
+<!-- Counter sheet -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-product" hidden>
+  <div class="sheet-inner">
+    <div class="sheet-bar">
+      <span class="sheet-kicker">Price match request</span>
+      <button class="btn btn-secondary" id="sheet-close" type="button" style="min-height:48px">Close</button>
+    </div>
+    <div>
+      <div class="sheet-kicker">Product</div>
+      <div class="sheet-product" id="sheet-product" tabindex="-1"></div>
+    </div>
+    <div class="sheet-price-card">
+      <div class="sheet-kicker" style="color:inherit">Competitor price today</div>
+      <div class="sheet-comp" id="sheet-comp"></div>
+      <div class="sheet-price" id="sheet-price"></div>
+      <div id="sheet-cw" style="font-weight:600;margin-top:6px"></div>
+    </div>
+    <div>
+      <div class="sheet-kicker">Product page (open to verify)</div>
+      <a class="sheet-url" id="sheet-url" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+    <div>
+      <p class="ask">Please check the page above and match this price.</p>
+    </div>
+    <ul id="sheet-policy"></ul>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- constants ---------- */
+  var CW_POLICY = [
+    "Matches a lower advertised price from an Australian registered pharmacy or retailer on the identical product (same brand, size, variant), then takes a further 10% off the difference.",
+    "Product must be in stock at the competitor; clearance, bundle, loyalty-only and marketplace prices are excluded; max 3 per product.",
+    "In store: show the competitor's current price (website on your phone is fine). Online: contact Chemist Warehouse customer service with the product URL before ordering.",
+    "Policy text is a summary of published terms as at Nov 2026; confirm current terms at chemistwarehouse.com.au."
+  ];
+  var AMCAL_POLICY = "Amcal has no published price match policy; franchise stores may match at their discretion.";
+  var PIN_KEY = "pm_pin", RECENT_KEY = "pm_recent", THEME_KEY = "pm_theme";
+
+  /* ---------- helpers ---------- */
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { product: null, imageUrl: null, result: null, abort: null, retry: null, thumb: null };
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  var aud = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function money(n) { return typeof n === "number" && isFinite(n) ? aud.format(n) : "n/a"; }
+  function el(tag, props, children) {
+    var e = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      if (k === "class") e.className = props[k];
+      else if (k === "text") e.textContent = props[k];
+      else e.setAttribute(k, props[k]);
+    });
+    (children || []).forEach(function (c) { if (c) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function safeUrl(u) { try { var x = new URL(u); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : null; } catch (e) { return null; } }
+  function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return u; } }
+
+  /* ---------- theme ---------- */
+  function applyTheme(t) { if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+  applyTheme(lsGet(THEME_KEY));
+  $("btn-theme").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    if (!cur) cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    var next = cur === "dark" ? "light" : "dark";
+    applyTheme(next); lsSet(THEME_KEY, next);
+  });
+
+  /* ---------- screens ---------- */
+  function show(name, focusSel) {
+    document.querySelectorAll("[data-screen]").forEach(function (s) { s.hidden = s.dataset.screen !== name; });
+    $("btn-lock").hidden = name === "pin" || !lsGet(PIN_KEY);
+    window.scrollTo(0, 0);
+    var target = document.querySelector('[data-screen="' + name + '"]');
+    var f = target && (focusSel ? target.querySelector(focusSel) : target.querySelector("h1, h2"));
+    if (f) { try { f.focus({ preventScroll: true }); } catch (e) {} }
+  }
+
+  /* ---------- API ---------- */
+  function ApiError(status, code, message) { this.status = status; this.code = code; this.message = message; }
+  function api(path, body, signal) {
+    var ctrl = new AbortController();
+    var timedOut = false;
+    var timer = setTimeout(function () { timedOut = true; ctrl.abort(); }, 90000);
+    if (signal) signal.addEventListener("abort", function () { ctrl.abort(); });
+    return fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-pin": lsGet(PIN_KEY) || "" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (!res.ok) throw new ApiError(res.status, data.error || "error", data.message || "");
+        return data;
+      });
+    }).catch(function (err) {
+      if (err instanceof ApiError) throw err;
+      if (err && err.name === "AbortError") throw new ApiError(0, timedOut ? "timeout" : "cancelled", "");
+      throw new ApiError(0, "network", "");
+    }).finally(function () { clearTimeout(timer); });
+  }
+
+  function handleError(err, retryFn) {
+    if (err.code === "cancelled") { goHome(); return; }
+    if (err.status === 401 || err.code === "bad_pin") {
+      lsDel(PIN_KEY);
+      showPin("That PIN was not accepted. Please enter it again.");
+      return;
+    }
+    var title = "Something went wrong", text;
+    switch (true) {
+      case err.code === "network": title = "No connection"; text = "Couldn't reach the server. Check your signal or Wi-Fi and try again."; break;
+      case err.code === "timeout": title = "Taking too long"; text = "The search timed out after 90 seconds. Try again."; break;
+      case err.status === 429: title = "Slow down a moment"; text = "Too many lookups in a short time. Wait a few minutes, then try again."; break;
+      case err.status === 503: title = "Not set up yet"; text = "The server isn't configured (missing PIN or API key)."; break;
+      case err.status === 502: title = "Couldn't get an answer"; text = err.code === "model_refused" ? "The AI declined to answer for this product. Try typing the name instead." : "The price lookup failed on the server. Try again, or edit the product name."; break;
+      case err.status === 400: title = "That didn't work"; text = err.message || "The request was rejected. Check the product details and try again."; break;
+      default: text = err.message || "Unexpected error (" + (err.status || err.code) + "). Try again.";
+    }
+    state.retry = retryFn;
+    $("error-title").textContent = title;
+    $("error-text").textContent = text;
+    $("btn-retry").hidden = !retryFn;
+    show("error");
+  }
+
+  /* ---------- PIN ---------- */
+  function showPin(msg) {
+    var e = $("pin-error");
+    $("pin-input").value = "";
+    e.hidden = !msg; e.textContent = msg || "";
+    show("pin", "#pin-input");
+  }
+  $("pin-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var v = $("pin-input").value.trim();
+    if (!/^\d{4,8}$/.test(v)) { var e = $("pin-error"); e.hidden = false; e.textContent = "PIN must be 4 to 8 digits."; $("pin-input").focus(); return; }
+    // Stored tentatively; cleared again on 401. A successful API call confirms it.
+    lsSet(PIN_KEY, v);
+    $("pin-error").hidden = true;
+    goHome();
+  });
+  $("btn-lock").addEventListener("click", function () { lsDel(PIN_KEY); showPin(); });
+
+  /* ---------- Home ---------- */
+  function goHome() {
+    if (state.abort) { state.abort.abort(); state.abort = null; }
+    if (!lsGet(PIN_KEY)) { showPin(); return; }
+    $("home-error").hidden = true;
+    renderRecent();
+    show("home");
+  }
+
+  function loadRecent() { try { var r = JSON.parse(lsGet(RECENT_KEY) || "[]"); return Array.isArray(r) ? r : []; } catch (e) { return []; } }
+  function saveRecent(product, result) {
+    var cw = result.match && result.match.chemist_warehouse;
+    var name = product.name || product.search_query || "Product";
+    var entry = {
+      name: name, when: new Date().toISOString(),
+      best: result.best_matchable ? { retailer: result.best_matchable.retailer, price: result.best_matchable.price } : null,
+      cw_price: cw && typeof cw.cw_price === "number" ? cw.cw_price : (result.chemist_warehouse ? result.chemist_warehouse.price : null),
+      product: product
+    };
+    var list = loadRecent().filter(function (x) { return !(x.name === name && x.product && x.product.search_query === product.search_query); });
+    list.unshift(entry);
+    lsSet(RECENT_KEY, JSON.stringify(list.slice(0, 10)));
+  }
+  function ago(iso) {
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (!(s >= 0)) return "";
+    if (s < 90) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min ago";
+    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    return Math.round(s / 86400) + " d ago";
+  }
+  function renderRecent() {
+    var list = loadRecent(), ul = $("recent-list");
+    ul.textContent = "";
+    $("recent-wrap").hidden = !list.length;
+    list.forEach(function (r, i) {
+      var price = r.best ? el("span", { class: "r-price", text: money(r.best.price) }) : el("span", { class: "r-when", text: "no match" });
+      var left = el("span", {}, [el("span", { class: "r-name", text: r.name }), el("br"), el("span", { class: "r-when", text: (r.best ? r.best.retailer + " · " : "") + (r.cw_price != null ? "CW " + money(r.cw_price) + " · " : "") + ago(r.when) })]);
+      var b = el("button", { type: "button" }, [left, price]);
+      b.addEventListener("click", function () { if (r.product) runCompare(r.product); else runIdentify({ text: r.name }); });
+      ul.appendChild(el("li", {}, [b]));
+    });
+  }
+  $("btn-clear-recent").addEventListener("click", function () { lsDel(RECENT_KEY); renderRecent(); $("text-input").focus(); });
+
+  /* ---------- image downscale ---------- */
+  function loadBitmap(file) {
+    if (window.createImageBitmap) {
+      return createImageBitmap(file, { imageOrientation: "from-image" }).catch(function () { return createImageBitmap(file); }).catch(function () { return loadImg(file); });
+    }
+    return loadImg(file);
+  }
+  function loadImg(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("decode")); };
+      img.src = url;
+    });
+  }
+  function downscale(file) {
+    return loadBitmap(file).then(function (bmp) {
+      var w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
+      var k = Math.min(1, 1280 / Math.max(w, h));
+      var cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+      var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(bmp, 0, 0, cw, ch);
+      if (bmp.close) bmp.close();
+      return c.toDataURL("image/jpeg", 0.8);
+    });
+  }
+
+  $("photo-input").addEventListener("change", function (ev) {
+    var f = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!f) return;
+    $("busy-status").textContent = "Preparing photo…";
+    $("preview").hidden = true;
+    show("identifying");
+    downscale(f).then(function (dataUrl) {
+      state.imageUrl = dataUrl;
+      $("preview").src = dataUrl; $("preview").hidden = false;
+      runIdentify({ image: dataUrl }, true);
+    }).catch(function () {
+      handleError(new ApiError(400, "bad_image", "Couldn't read that photo. Try taking it again, or type the product name."), null);
+    });
+  });
+
+  $("text-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var t = $("text-input").value.trim();
+    if (t.length < 2) { var e = $("home-error"); e.hidden = false; e.textContent = "Type at least a brand and product name."; $("text-input").focus(); return; }
+    state.imageUrl = null;
+    runIdentify({ text: t });
+  });
+
+  /* ---------- Identify ---------- */
+  function runIdentify(body, keepScreen) {
+    if (!keepScreen) { $("preview").hidden = true; $("busy-status").textContent = "Looking up the product…"; show("identifying"); }
+    else { $("busy-status").textContent = "Reading the label…"; }
+    if (state.abort) state.abort.abort();
+    var ctl = state.abort = new AbortController();
+    api("/api/identify", body, ctl.signal).then(function (data) {
+      if (state.abort !== ctl) return;
+      state.abort = null;
+      state.typed = body.text || "";
+      showConfirm(data.product || {}, body.text);
+    }).catch(function (err) {
+      if (state.abort !== ctl && err.code === "cancelled") return;
+      state.abort = null;
+      handleError(err, function () { runIdentify(body); });
+    });
+  }
+  $("btn-cancel").addEventListener("click", goHome);
+  $("btn-cancel2").addEventListener("click", goHome);
+
+  /* ---------- Confirm ---------- */
+  function showConfirm(p, typed) {
+    state.product = p;
+    var ok = p.is_product !== false;
+    $("confirm-name").textContent = ok ? (p.name || "Unnamed product") : "That doesn't look like a product";
+    $("confirm-notes").textContent = p.notes || "";
+    var th = $("confirm-thumb");
+    if (state.imageUrl) { th.src = state.imageUrl; th.hidden = false; } else th.hidden = true;
+    var facts = $("confirm-facts"); facts.textContent = "";
+    if (ok) [["Brand", p.brand], ["Size", p.size], ["Variant", p.variant], ["Barcode", p.barcode]].forEach(function (r) {
+      if (r[1]) { facts.appendChild(el("dt", { text: r[0] })); facts.appendChild(el("dd", { text: r[1] })); }
+    });
+    if (ok && typeof p.confidence === "number" && p.confidence < 0.6) {
+      facts.appendChild(el("dt", { text: "Confidence" })); facts.appendChild(el("dd", { text: "Low. Please check the name." }));
+    }
+    $("confirm-query").value = ok ? (p.search_query || p.name || "") : (typed || "");
+    $("confirm-query").placeholder = ok ? "" : "Type the product name";
+    show("confirm", ok ? "h2" : "#confirm-query");
+    if (!ok) $("confirm-query").focus();
+  }
+  $("confirm-form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var q = $("confirm-query").value.trim();
+    if (!q) { $("confirm-query").focus(); return; }
+    var p = state.product || {};
+    if (p.is_product === false) {
+      // she typed the name instead: re-run identify so the model normalises it
+      runIdentify({ text: q });
+      return;
+    }
+    var edited = Object.assign({}, p, { search_query: q });
+    if (q !== p.search_query && q.toLowerCase().indexOf((p.name || "").toLowerCase()) === -1) {
+      // query changed to something that no longer mentions the identified name: treat query as the name too
+      edited.name = q;
+    }
+    runCompare(edited);
+  });
+  $("btn-retake").addEventListener("click", function () { state.imageUrl = null; goHome(); });
+
+  /* ---------- Compare ---------- */
+  function cleanProduct(p) {
+    var o = {};
+    ["name", "brand", "size", "variant", "barcode", "search_query"].forEach(function (k) { if (typeof p[k] === "string" && p[k].trim()) o[k] = p[k].trim(); });
+    if (!o.name) o.name = o.search_query || "Product";
+    return o;
+  }
+  function runCompare(product) {
+    var body = { product: cleanProduct(product) };
+    state.product = product;
+    $("comparing-name").textContent = body.product.name;
+    show("comparing");
+    if (state.abort) state.abort.abort();
+    var ctl = state.abort = new AbortController();
+    api("/api/compare", body, ctl.signal).then(function (data) {
+      if (state.abort !== ctl) return;
+      state.abort = null;
+      state.result = data;
+      saveRecent(body.product, data);
+      renderResults(data);
+    }).catch(function (err) {
+      if (state.abort !== ctl && err.code === "cancelled") return;
+      state.abort = null;
+      handleError(err, function () { runCompare(product); });
+    });
+  }
+
+  /* ---------- Results ---------- */
+  function cwMatch(r) { return r.match && r.match.chemist_warehouse; }
+  function renderResults(r) {
+    var p = r.product || state.product || {};
+    var m = cwMatch(r) || { status: "unknown" };
+    var v = $("verdict"); v.textContent = "";
+    var best = r.best_matchable;
+    var box;
+    if (m.status === "match" && best) {
+      var saving = typeof m.cw_price === "number" && typeof m.you_pay === "number" ? m.cw_price - m.you_pay : null;
+      box = el("div", { class: "verdict yes" }, [
+        el("div", { class: "v-kicker", text: "Price match it" }),
+        el("div", { class: "v-big", text: money(m.you_pay) }),
+        el("div", { class: "v-title", text: "Pay " + money(m.you_pay) + " at Chemist Warehouse" }),
+        el("div", { class: "v-sub", text: (saving != null ? "Save " + money(saving) + " vs Chemist Warehouse's " + money(m.cw_price) + ". " : "") + "Match " + (m.competitor_name || best.retailer) + "'s " + money(m.competitor_price) + ", plus " + money(m.bonus) + " off." })
+      ]);
+      var acts = el("div", { class: "verdict-actions" });
+      var b = el("button", { class: "btn btn-primary btn-block", type: "button", text: "Show at the counter" });
+      b.addEventListener("click", openSheet);
+      acts.appendChild(b); box.appendChild(acts);
+    } else if (m.status === "already_cheapest") {
+      box = el("div", { class: "verdict cheapest" }, [
+        el("div", { class: "v-kicker", text: "No match needed" }),
+        el("div", { class: "v-title", text: "Chemist Warehouse is already cheapest" }),
+        el("div", { class: "v-sub", text: typeof m.cw_price === "number" ? "Their price: " + money(m.cw_price) + "." : (m.explanation || "") })
+      ]);
+    } else {
+      box = el("div", { class: "verdict unknown" }, [
+        el("div", { class: "v-kicker", text: "No answer" }),
+        el("div", { class: "v-title", text: "Couldn't find a matchable price" }),
+        el("div", { class: "v-sub", text: m.explanation || "No in-stock Australian retailer price was found for this exact product. Check the list below." })
+      ]);
+      if (best) {
+        var b2 = el("button", { class: "btn btn-secondary btn-block", type: "button", text: "Show best price at the counter" });
+        b2.addEventListener("click", openSheet);
+        box.appendChild(el("div", { class: "verdict-actions" }, [b2]));
+      }
+    }
+    v.appendChild(box);
+
+    $("results-product").textContent = [p.name, p.size].filter(Boolean).filter(function (x, i, a) { return i === 0 || (a[0] || "").toLowerCase().indexOf(x.toLowerCase()) === -1; }).join(" · ");
+
+    // CW + Amcal rows
+    var ca = $("cw-amcal"); ca.textContent = "";
+    ca.appendChild(brandRow("Chemist Warehouse", r.chemist_warehouse, "not found"));
+    var amc = r.match && r.match.amcal;
+    ca.appendChild(brandRow("Amcal", r.amcal, "not found"));
+    if (amc && amc.explanation) ca.appendChild(el("p", { class: "small", text: amc.explanation }));
+
+    // store list
+    var ul = $("stores"); ul.textContent = "";
+    var stores = (r.stores || []).slice().sort(function (a, b) { return (a.price == null ? 1e9 : a.price) - (b.price == null ? 1e9 : b.price); });
+    if (!stores.length) ul.appendChild(el("li", { class: "card", text: "No prices were found." }));
+    stores.forEach(function (s) {
+      var isBest = best && s.retailer === best.retailer && s.price === best.price;
+      var priceEl = el("span", { class: "store-price" }, [s.promo && s.was_price ? el("s", { text: money(s.was_price) }) : null, document.createTextNode(money(s.price))]);
+      var label = s.matchable === "yes" ? "Matchable" : s.matchable === "maybe" ? "Maybe" : s.matchable === "self" ? "Chemist Warehouse" : "Won't match";
+      var badges = el("div", { class: "badges" }, [
+        el("span", { class: "badge " + (s.matchable || "no"), text: label }),
+        s.promo ? el("span", { class: "badge self", text: "Special" }) : null,
+        s.in_stock === false ? el("span", { class: "badge no", text: "Out of stock" }) : null
+      ]);
+      var li = el("li", { class: "store" + (isBest ? " best" : "") }, [
+        el("div", { class: "store-top" }, [el("span", { class: "store-name", text: s.retailer }), priceEl]),
+        badges,
+        s.matchable_reason ? el("div", { class: "small", text: s.matchable_reason }) : null,
+        s.notes ? el("div", { class: "note", text: s.notes }) : null
+      ]);
+      var u = safeUrl(s.url);
+      if (u) li.appendChild(el("a", { class: "visit", href: u, target: "_blank", rel: "noopener noreferrer", text: "Open on " + hostOf(u) + " ↗" }));
+      ul.appendChild(li);
+    });
+
+    $("results-summary").textContent = r.summary || "";
+    var when = r.searched_at ? new Date(r.searched_at) : null;
+    $("results-disclaimer").textContent = "Prices were read from retailer websites" + (when && !isNaN(when) ? " at " + when.toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" }) : "") + ". Always check the live page before relying on a price.";
+
+    // policy
+    var pb = $("policy-body"); pb.textContent = "";
+    pb.appendChild(el("h3", { text: "Chemist Warehouse" }));
+    pb.appendChild(el("ul", {}, policyBullets(r).map(function (t) { return el("li", { text: t }); })));
+    pb.appendChild(el("h3", { text: "Amcal" }));
+    pb.appendChild(el("p", { text: (r.policy && r.policy.amcal) || AMCAL_POLICY }));
+    $("policy").open = false;
+    $("copy-status").textContent = "";
+    show("results", "#results-h");
+    $("results-h").focus();
+  }
+  function brandRow(name, obj, none) {
+    var kids = [el("span", { class: "b-name", text: name })];
+    if (obj && typeof obj.price === "number") {
+      kids.push(el("span", { class: "b-price", text: money(obj.price) }));
+    } else kids.push(el("span", { class: "small", text: none }));
+    var row = el("div", { class: "brow" }, kids);
+    var wrap = el("div", {}, [row]);
+    var u = obj && safeUrl(obj.url);
+    if (u) wrap.appendChild(el("a", { class: "small", href: u, target: "_blank", rel: "noopener noreferrer", text: "View on " + hostOf(u) + " ↗", style: "display:inline-block;min-height:32px;color:var(--primary-ink);font-weight:600" }));
+    return wrap;
+  }
+  function policyBullets(r) {
+    var p = r && r.policy;
+    var list = p && (p.chemist_warehouse || p.cw || p.cw_policy);
+    if (typeof list === "string") list = [list];
+    return Array.isArray(list) && list.length ? list : CW_POLICY;
+  }
+
+  /* ---------- counter sheet ---------- */
+  var lastFocus = null;
+  function openSheet() {
+    var r = state.result; if (!r || !r.best_matchable) return;
+    var b = r.best_matchable, m = cwMatch(r) || {}, p = r.product || state.product || {};
+    $("sheet-product").textContent = [p.name, p.size].filter(Boolean).filter(function (x, i, a) { return i === 0 || a[0].toLowerCase().indexOf(x.toLowerCase()) === -1; }).join(" ");
+    $("sheet-comp").textContent = b.retailer;
+    $("sheet-price").textContent = money(b.price);
+    $("sheet-cw").textContent = typeof m.cw_price === "number" ? "Chemist Warehouse is " + money(m.cw_price) + (m.status === "match" ? ". Match it, then 10% off the difference: " + money(m.you_pay) + "." : ".") : "";
+    var u = safeUrl(b.url), a = $("sheet-url");
+    a.textContent = u || "(no link available)"; if (u) a.href = u; else a.removeAttribute("href");
+    var ul = $("sheet-policy"); ul.textContent = "";
+    policyBullets(r).forEach(function (t) { ul.appendChild(el("li", { text: t })); });
+    lastFocus = document.activeElement;
+    $("sheet").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("sheet").scrollTop = 0;
+    $("sheet-product").focus();
+  }
+  function closeSheet() {
+    $("sheet").hidden = true; document.body.style.overflow = "";
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $("sheet-close").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !$("sheet").hidden) closeSheet();
+    if (e.key === "Tab" && !$("sheet").hidden) {
+      var f = Array.prototype.slice.call($("sheet").querySelectorAll("a[href], button"));
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (!$("sheet").contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ---------- copy / new ---------- */
+  function summaryText() {
+    var r = state.result; if (!r) return "";
+    var p = r.product || {}, m = cwMatch(r) || {}, b = r.best_matchable, L = [];
+    L.push("Price match: " + [p.name, p.size].filter(Boolean).join(" "));
+    if (m.status === "match" && b) {
+      L.push("Chemist Warehouse: " + money(m.cw_price));
+      L.push("Best matchable: " + b.retailer + " " + money(b.price) + (b.url ? " " + b.url : ""));
+      L.push("Pay " + money(m.you_pay) + " after match + 10% of the difference (save " + money(m.cw_price - m.you_pay) + ").");
+    } else if (m.status === "already_cheapest") {
+      L.push("Chemist Warehouse is already cheapest" + (typeof m.cw_price === "number" ? " at " + money(m.cw_price) : "") + ".");
+    } else L.push("No matchable price found.");
+    L.push("");
+    (r.stores || []).slice().sort(function (a, b) { return a.price - b.price; }).forEach(function (s) {
+      L.push("- " + s.retailer + ": " + money(s.price) + " (" + (s.matchable || "?") + ")" + (s.url ? " " + s.url : ""));
+    });
+    if (r.searched_at) L.push("", "Prices read " + r.searched_at + ". Check the live page.");
+    return L.join("\n");
+  }
+  $("btn-copy").addEventListener("click", function () {
+    var t = summaryText(), st = $("copy-status");
+    function ok() { st.textContent = "Summary copied."; }
+    function fail() {
+      var ta = el("textarea", { "aria-hidden": "true", style: "position:fixed;opacity:0" }); ta.value = t; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy") ? ok() : (st.textContent = "Couldn't copy. Select and copy manually."); } catch (e) { st.textContent = "Couldn't copy."; }
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, fail); else fail();
+  });
+  $("btn-new").addEventListener("click", function () { state.imageUrl = null; goHome(); $("text-input").value = ""; });
+  $("btn-retry").addEventListener("click", function () { if (state.retry) state.retry(); });
+  $("btn-error-home").addEventListener("click", goHome);
+
+  /* ---------- boot ---------- */
+  goHome();
+
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
