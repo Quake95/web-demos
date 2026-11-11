@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     if (process.env.MOCK_API === "1") {
       await mockDelay();
       out = mockModelCompare();
-      usage = { input_tokens: 0, output_tokens: 0, web_searches: 0 };
+      usage = { input_tokens: 0, cached_input_tokens: 0, output_tokens: 0, web_searches: 0 };
     } else {
       ({ out, usage } = await researchPrices(product));
     }
