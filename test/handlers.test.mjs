@@ -41,7 +41,7 @@ test("compare (mock) returns documented shape and runs policy", async () => {
   assert.equal(b.match.chemist_warehouse.status, "match");
   assert.equal(b.match.chemist_warehouse.you_pay, 12.25);
   assert.equal(b.best_matchable.retailer, "Woolworths");
-  assert.deepEqual(Object.keys(b.usage), ["input_tokens", "output_tokens", "web_searches"]);
+  assert.deepEqual(Object.keys(b.usage), ["input_tokens", "cached_input_tokens", "output_tokens", "web_searches"]);
   assert.ok(!Number.isNaN(Date.parse(b.searched_at)));
   const s = b.stores.find((x) => x.retailer === "Woolworths");
   for (const k of ["domain", "url", "price", "was_price", "promo", "in_stock", "notes", "kind", "matchable", "matchable_reason"]) assert.ok(k in s, k);
