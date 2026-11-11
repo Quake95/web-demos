@@ -32,14 +32,14 @@ tradie/, accountant/     older demo pages, unrelated
 2. Settings -> Environment Variables (Production):
    - `ANTHROPIC_API_KEY` from console.anthropic.com
    - `APP_PIN` a 4-8 digit PIN only you and Steph know
-   - optional `CLAUDE_MODEL` (default `claude-opus-5-5`), `MAX_SEARCHES` (default 8)
+   - optional `CLAUDE_MODEL` (default `claude-opus-5-5`), `MAX_SEARCHES` (default 10)
 3. Deploy. Open the URL on the phone, enter the PIN once, then use the browser's "Add to Home Screen".
 
 Only requests carrying the right PIN reach the API, and the functions rate limit per IP, so a leaked URL cannot spend your credit.
 
 ## Cost
 
-Each lookup is one vision call plus one web search call. Expect roughly 5 to 15 cents per lookup at current Claude Opus 5.5 and web search pricing, depending on how many pages the model reads. Lower `MAX_SEARCHES` to cap it.
+Each lookup is one vision call plus one web search call. A real lookup measured about 60k input tokens, 1.6k output tokens and 8 web searches, which is roughly 35 cents at current Claude Opus 5.5 and web search pricing. Setting `CLAUDE_MODEL=claude-sonnet-5-5` roughly halves that. Lower `MAX_SEARCHES` to cap it.
 
 ## Status
 

@@ -8,13 +8,20 @@ import { RETAILER_DOMAINS, buildComparison } from "../lib/policy.js";
 import { CompareRequest, ModelCompareOutput, normaliseModelCompare, zodMessage } from "../lib/schemas.js";
 import { mockDelay, mockModelCompare } from "../lib/mock.js";
 
-const SYSTEM = `You are a price researcher for Australian shoppers. Find the current advertised price for the exact product
-given (same brand, size and variant) at each Australian retailer you can, including Chemist Warehouse and Amcal themselves.
-Prefer the retailer's own product page. Report the price shown today in AUD, whether it is a promo or special (and the
-was-price if shown), the product URL, and stock status if visible. Skip different sizes and multipacks.
+const SYSTEM = `You are a price researcher for Australian shoppers preparing a Chemist Warehouse price match.
+Goal: find today's advertised price for the EXACT product (same brand, form, strength and pack size) at as many Australian
+retailers as you can, always including Chemist Warehouse and Amcal themselves.
+Method: first run one broad search for the product name to learn which pack sizes and forms actually exist and who stocks it.
+Then run targeted searches or fetches for the exact pack at Chemist Warehouse, Amcal and the other retailers. Prefer the
+retailer's own product page. Read the price shown today in AUD, whether it is a promo or special (and the was-price if shown),
+the product URL, and stock status if visible.
+If the exact pack size or variant is not sold somewhere, still report the closest product you priced there (same brand,
+nearest pack size or form) with "exact": false and say what differs in notes, so the shopper can see it. Say in summary
+when the exact product could not be found anywhere. Never invent a price or URL: only report what you actually saw.
+Budget your searches; do not spend them all on one retailer.
 When done, reply with ONLY a JSON object, no prose and no code fences, in this shape:
-{"stores":[{"retailer":"Woolworths","url":"https://...","price":12.5,"was_price":15.0,"promo":true,"in_stock":true,"notes":"half price this week"}],"summary":"one or two sentences"}
-Use null for was_price or in_stock when unknown.`;
+{"stores":[{"retailer":"Woolworths","url":"https://...","price":12.5,"was_price":15.0,"promo":true,"in_stock":true,"exact":true,"notes":"half price this week"}],"summary":"one or two sentences"}
+Use null for was_price or in_stock when unknown. exact is true only when brand, form, strength and pack size all match.`;
 
 /** One-line description of the product for the prompt. */
 export function describeProduct(p) {

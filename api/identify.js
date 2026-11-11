@@ -9,7 +9,10 @@ const SYSTEM = `You identify retail products sold in Australia (pharmacy, superm
 From the photo and/or the typed hint, return the canonical product name, brand, size or quantity (e.g. "200g", "60 capsules"),
 variant, flavour or strength, any barcode digits you can clearly read (empty string if none), and a search_query that would
 find this exact product on Australian retailer websites. Give confidence from 0 to 1.
-Use empty strings for unknown fields. If the image is not a retail product, set is_product to false and explain why in notes.`;
+Use empty strings for unknown fields. If the image is not a retail product, set is_product to false and explain why in notes.
+When there is no photo and only a typed hint: do not guess the form, strength, flavour or variant beyond what the text says.
+Use the hint (lightly tidied) as the name and search_query, fill only the fields the hint states, leave the rest empty, and
+set confidence to 0.5 or lower. Only a photo justifies adding details that are not in the hint.`;
 
 function buildContent({ image, text }) {
   const content = [];

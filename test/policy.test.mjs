@@ -46,7 +46,7 @@ test("computeYouPay floors at 0", () => {
 
 test("buildComparison over mock data", () => {
   const r = buildComparison({ name: "x" }, mockModelCompare());
-  assert.equal(r.stores.length, 7);
+  assert.equal(r.stores.length, 8);
   assert.equal(r.chemist_warehouse.price, 14.99);
   assert.equal(r.amcal.price, 16.49);
   assert.equal(r.best_matchable.retailer, "Woolworths");
@@ -58,6 +58,8 @@ test("buildComparison over mock data", () => {
   assert.equal(by["Amazon AU"], "no");
   assert.equal(by["iHerb"], "no");
   assert.equal(by["Coles"], "yes");
+  assert.equal(by["Big W"], "no"); // exact:false row is cheapest but must never win the match
+  assert.equal(r.best_matchable.price, 12.5);
   assert.ok(r.stores.every((s, i, a) => i === 0 || a[i - 1].price <= s.price));
 });
 
@@ -67,6 +69,10 @@ test("buildComparison: already_cheapest and unknown", () => {
   assert.equal(cheap.match.chemist_warehouse.status, "already_cheapest");
   const noCw = buildComparison({}, { stores: [row("Coles", "https://coles.com.au/a", 10)] });
   assert.equal(noCw.match.chemist_warehouse.status, "unknown");
+  // a Chemist Warehouse row for a different pack size is not Chemist Warehouse's price
+  const inexactCw = buildComparison({}, { stores: [row("Chemist Warehouse", "https://chemistwarehouse.com.au/b", 20, { exact: false }), row("Coles", "https://coles.com.au/a", 10)] });
+  assert.equal(inexactCw.chemist_warehouse, null);
+  assert.equal(inexactCw.match.chemist_warehouse.status, "unknown");
   const none = buildComparison({}, { stores: [row("Amazon AU", "https://amazon.com.au/a", 5)] });
   assert.equal(none.best_matchable, null);
   assert.equal(none.match.chemist_warehouse.status, "unknown");
