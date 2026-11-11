@@ -1,7 +1,7 @@
 // POST /api/compare  { product }  ->  prices, matchability and Chemist Warehouse match verdict
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import {
-  REPAIR_MODEL, buildCompareTools, createWithContinuations, extractJson, getClient, getModel, sendError, textBlocks,
+  REPAIR_MODEL, buildCompareTools, createWithContinuations, extractJson, getClient, getCompareEffort, getCompareModel, sendError, textBlocks,
 } from "../lib/anthropic.js";
 import { HttpError, fail, guard } from "../lib/auth.js";
 import { RETAILER_DOMAINS, buildComparison } from "../lib/policy.js";
@@ -19,6 +19,8 @@ If the exact pack size or variant is not sold somewhere, still report the closes
 nearest pack size or form) with "exact": false and say what differs in notes, so the shopper can see it. Say in summary
 when the exact product could not be found anywhere. Never invent a price or URL: only report what you actually saw.
 Budget your searches; do not spend them all on one retailer.
+Every price you mention in summary must also appear as a row in stores; if two sources disagree, report the lower one and
+put the doubt in notes. Keep notes under 15 words and summary under 2 sentences. Do not narrate your process.
 When done, reply with ONLY a JSON object, no prose and no code fences, in this shape:
 {"stores":[{"retailer":"Woolworths","url":"https://...","price":12.5,"was_price":15.0,"promo":true,"in_stock":true,"exact":true,"notes":"half price this week"}],"summary":"one or two sentences"}
 Use null for was_price or in_stock when unknown. exact is true only when brand, form, strength and pack size all match.`;
@@ -66,12 +68,12 @@ async function repair(rawText) {
 async function researchPrices(product) {
   const today = new Date().toISOString().slice(0, 10);
   const { response, usage } = await createWithContinuations(getClient(), {
-    model: getModel(),
+    model: getCompareModel(),
     max_tokens: 8000,
     system: SYSTEM,
     messages: [{ role: "user", content: `Today is ${today}. Product: ${describeProduct(product)}` }],
     tools: buildCompareTools(RETAILER_DOMAINS),
-    output_config: { effort: "medium" },
+    output_config: { effort: getCompareEffort() },
   });
   if (response.stop_reason === "refusal") throw new HttpError(502, "model_refused");
 

@@ -1,6 +1,6 @@
 // POST /api/identify  { image?: dataURL, text?: string }  ->  { product }
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { getClient, getModel, sendError } from "../lib/anthropic.js";
+import { getClient, getIdentifyModel, sendError } from "../lib/anthropic.js";
 import { HttpError, fail, guard } from "../lib/auth.js";
 import { IdentifyOutput, IdentifyRequest, parseImageDataUrl, zodMessage } from "../lib/schemas.js";
 import { mockDelay, mockProduct } from "../lib/mock.js";
@@ -25,7 +25,7 @@ function buildContent({ image, text }) {
 
 async function identifyWithClaude(body) {
   const response = await getClient().messages.parse({
-    model: getModel(),
+    model: getIdentifyModel(),
     max_tokens: 2000,
     system: SYSTEM,
     messages: [{ role: "user", content: buildContent(body) }],
